@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Apurva Raj: technology leader, AI systems and fintech</title>
+<meta name="description" content="Apurva Raj, Co-Founder and CTO at FidelFolio Investments. I build data platforms, backtesting engines and agentic AI workflows.">
+<meta name="theme-color" content="#ECEEF1">
+<meta property="og:title" content="Apurva Raj">
+<meta property="og:description" content="Technology leader in AI systems and fintech architecture.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='14' height='14' fill='%231F44D0'/%3E%3Ccircle cx='25' cy='7' r='7' fill='%23F2BE22'/%3E%3Cpath d='M16 32 23 18 30 32Z' fill='%23D8341F'/%3E%3C/svg%3E">
+</head>
+<body>
+<header class="bar">
+  <a class="mark" href="./" aria-label="Apurva Raj, home"><i></i><i></i><i></i></a>
+  <nav aria-label="Main">
+    <a href="#work">Work</a>
+    <a class="hide-sm" href="#path">Experience</a>
+    <a href="learning/">Learning</a>
+    <a href="#contact">Contact</a>
+  </nav>
+</header>
+
+<div class="page">
+<main>
+  <section class="hero" aria-label="Introduction">
+    <canvas id="field" aria-hidden="true"></canvas>
+    <button class="tune-btn" aria-expanded="false" aria-controls="tune">Tune the field</button>
+    <div class="tune" id="tune" hidden>
+      <label for="t-s">Scale <output for="t-s"></output><input id="t-s" name="S" type="range" min="0.6" max="3.2" step="0.05" value="1.6"></label>
+      <label for="t-d">Contour density <output for="t-d"></output><input id="t-d" name="D" type="range" min="4" max="30" step="1" value="14"></label>
+      <label for="t-f">Flow speed <output for="t-f"></output><input id="t-f" name="F" type="range" min="0" max="4" step="0.05" value="1"></label>
+      <label for="t-p">Pointer pull <output for="t-p"></output><input id="t-p" name="P" type="range" min="0" max="1.5" step="0.05" value="0.55"></label>
+      <div class="swatches" role="group" aria-label="Palette">
+        <button data-pal="bauhaus" aria-pressed="true" aria-label="Bauhaus primaries" style="background:linear-gradient(90deg,#1F44D0 33%,#F2BE22 33% 66%,#D8341F 66%)"></button>
+        <button data-pal="ink" aria-pressed="false" aria-label="Ink" style="background:#141A26"></button>
+        <button data-pal="blueprint" aria-pressed="false" aria-label="Blueprint" style="background:#1F44D0"></button>
+      </div>
+      <p>A moving surface of contour lines, like a price chart seen from above. Move your pointer to bend it.</p>
+    </div>
+
+    <div class="hero-type">
+      <h1><span>Apurva</span><span class="last">Raj</span></h1>
+    </div>
+    <div class="hero-foot">
+      <p>I build the systems investment firms run on: data, backtests and AI that people can check.</p>
+      <div class="contact">
+        <a href="mailto:just.apurva@gmail.com">Email</a>
+        <a href="https://www.linkedin.com/in/apurva-raj-b3918b24/" rel="noopener">LinkedIn</a>
+        <a href="https://github.com/apurvaRaj" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="about" aria-labelledby="h-about">
+    <h2 id="h-about">Profile</h2>
+    <div class="prose">
+      <p class="lede">Co-Founder and CTO of FidelFolio Investments, a SEBI-registered investment adviser in Mumbai.</p>
+      <p>Over 13 years I have designed and delivered platforms in fintech, insurance, public health and consumer technology. At FidelFolio I built the firm's data platform, its backtesting engines and the AI workflows that produce reports under human review. At ChainThat I helped build a blockchain insurance platform for Berkshire Hathaway and later led its technical delivery. At CARE India I led the apps that served health workers across Bihar, including the state's COVID-19 app.</p>
+      <p>I write code, design systems and lead teams. I like software that is simple, reliable and easy to trust. I work from Bengaluru and I'm open to remote roles.</p>
+      <div class="facts">
+        <div class="fact"><i class="shape"></i><b>30+ yrs</b><span>of Indian share prices and fundamentals in the data platform I architected</span></div>
+        <div class="fact"><i class="shape"></i><b>130+</b><span>countries covered by the insurance platform built for Berkshire Hathaway</span></div>
+        <div class="fact"><i class="shape"></i><b>200,000+</b><span>frontline health workers reached by the Bihar programme I ran systems for</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="work" aria-labelledby="h-work">
+    <h2 id="h-work">Selected work</h2>
+    <div>
+      <ul class="index">
+        <li data-org="FidelFolio" data-yr="2025">
+          <button class="row" aria-haspopup="dialog"><h3>Financial data platform</h3><span class="org">FidelFolio</span><span class="yr">2025</span></button>
+          <div class="detail">
+            <div class="prose"><p>The firm's research, backtests and client reports all start here. I architected a platform that holds more than three decades of share prices and fundamentals for listed Indian companies, loaded and checked by automated Python pipelines.</p></div>
+            <ul class="points"><li>One source of market data for research, backtesting and reporting</li><li>Scheduled pipelines load index, price and fundamentals data and flag gaps</li><li>Built so analysts can query it directly from notebooks</li></ul>
+            <ul class="stack"><li>Python</li><li>MySQL</li><li>pandas</li><li>SQLAlchemy</li><li>ETL</li></ul>
+          </div>
+        </li>
+        <li data-org="FidelFolio" data-yr="2025">
+          <button class="row" aria-haspopup="dialog"><h3>Agentic workflow platform</h3><span class="org">FidelFolio</span><span class="yr">2025</span></button>
+          <div class="detail">
+            <div class="prose"><p>A platform that coordinates AI agents, tools and human approval steps. Each step can only reach what it is allowed to, every run is logged, and workflows that work are kept and reused. It now runs the firm's recurring reporting and testing, which made reports faster and more reliable.</p></div>
+            <ul class="points"><li>Workflows built from LLM, tool and human-review steps</li><li>Per-step access control and a full log of every run</li><li>A registry of proven workflows that new work builds on</li></ul>
+            <ul class="stack"><li>LangGraph</li><li>OpenAI API</li><li>Jupyter</li><li>Python</li><li>Human in the loop</li></ul>
+          </div>
+        </li>
+        <li data-org="FidelFolio" data-yr="2026">
+          <button class="row" aria-haspopup="dialog"><h3>MCP execution gateway</h3><span class="org">FidelFolio</span><span class="yr">2026</span></button>
+          <div class="detail">
+            <div class="prose"><p>An MCP gateway that lets AI assistants run Jupyter notebooks and Python on the firm's own servers. Tool access is controlled and data permissions are read-only, so an assistant can do real analysis without being able to change anything it shouldn't.</p></div>
+            <ul class="points"><li>Assistants call notebooks and scripts as tools</li><li>A separate execution worker on the host runs the jobs</li><li>Read-only data access by default</li></ul>
+            <ul class="stack"><li>MCP</li><li>FastAPI</li><li>Docker</li><li>Jupyter</li></ul>
+            <a class="go" href="https://github.com/apurvaRaj/agent-exec-gateway" rel="noopener">View the code on GitHub</a>
+          </div>
+        </li>
+        <li data-org="FidelFolio" data-yr="2025">
+          <button class="row" aria-haspopup="dialog"><h3>Backtesting engine and AI stock screener</h3><span class="org">FidelFolio</span><span class="yr">2025</span></button>
+          <div class="detail">
+            <div class="prose"><p>Rules-based backtesting engines for Indian equities, and a live stock screener whose AI assistant helps users build screens in plain language instead of filter forms.</p></div>
+            <ul class="points"><li>Return and fundamental backtests for rules-based strategies</li><li>Engine versions checked against each other on the firm's product portfolios</li><li>Screens described in plain language and turned into filters</li></ul>
+            <ul class="stack"><li>Python</li><li>React</li><li>OpenAI API</li><li>Quant research</li></ul>
+            <a class="go" href="https://fidelfolio.ai" rel="noopener">Open fidelfolio.ai</a>
+          </div>
+        </li>
+        <li data-org="FidelFolio" data-yr="2025">
+          <button class="row" aria-haspopup="dialog"><h3>Firm websites built with AI coding agents</h3><span class="org">FidelFolio</span><span class="yr">2025</span></button>
+          <div class="detail">
+            <div class="prose"><p>I led the build and launch of fidelfolio.com and fidelfolio.ai using AI coding agents such as Claude Code, and owned the architecture, code quality and releases.</p></div>
+            <ul class="stack"><li>Claude Code</li><li>React</li><li>CI/CD</li></ul>
+            <a class="go" href="https://fidelfolio.com" rel="noopener">Open fidelfolio.com</a>
+          </div>
+        </li>
+        <li data-org="FidelFolio" data-yr="2025">
+          <button class="row" aria-haspopup="dialog"><h3>Reporting, publishing and video automation</h3><span class="org">FidelFolio</span><span class="yr">2025</span></button>
+          <div class="detail">
+            <div class="prose"><p>Automated the routine work: report generation, social publishing across platforms, and explainer-video production from a script. Built on self-hosted n8n, Docker and Python.</p></div>
+            <ul class="points"><li>Metadata-driven report generation</li><li>Sheet-driven multi-platform publishing</li><li>A Python motion engine that turns a script into an explainer video</li></ul>
+            <ul class="stack"><li>n8n</li><li>Docker</li><li>Python</li></ul>
+          </div>
+        </li>
+        <li data-org="ChainThat" data-yr="2021">
+          <button class="row" aria-haspopup="dialog"><h3>BMNP, blockchain insurance for Berkshire Hathaway</h3><span class="org">ChainThat</span><span class="yr">2021</span></button>
+          <div class="detail">
+            <div class="prose"><p>A blockchain insurance platform on R3 Corda that gives insurers one shared record for multinational programmes in more than 130 countries. It ended manual re-entry of data at renewal. I helped build it and, from 2024, led its technical delivery.</p></div>
+            <ul class="points"><li>Secure APIs and access control</li><li>React interfaces on a cloud-agnostic microservices architecture</li><li>Won the company's "Code Ninja" and "Amazing Addition" awards</li></ul>
+            <ul class="stack"><li>R3 Corda</li><li>Java</li><li>Microservices</li><li>React</li></ul>
+          </div>
+        </li>
+        <li data-org="CARE India" data-yr="2020">
+          <button class="row" aria-haspopup="dialog"><h3>Sanjivan, Bihar's COVID-19 app</h3><span class="org">CARE India</span><span class="yr">2020</span></button>
+          <div class="detail">
+            <div class="prose"><p>I led the team that built the state's COVID-19 app. It showed citizens nearby test centres, hospitals and free beds, in several languages, during the worst of the pandemic.</p></div>
+            <ul class="stack"><li>Android</li><li>Public health</li><li>Government of Bihar</li></ul>
+          </div>
+        </li>
+        <li data-org="CARE India" data-yr="2019">
+          <button class="row" aria-haspopup="dialog"><h3>Field apps for health workers</h3><span class="org">CARE India</span><span class="yr">2019</span></button>
+          <div class="detail">
+            <div class="prose"><p>Apps for CARE's Bihar Technical Support Program, which reached more than 200,000 frontline health workers, built with the state Health and ICDS departments.</p></div>
+            <ul class="points"><li>RAFT: real-time facility reporting</li><li>AIMS: a health-worker registry with Aadhaar authentication</li><li>Bed tracking for newborn care units</li></ul>
+            <ul class="stack"><li>Android</li><li>Aadhaar auth</li><li>Reporting</li></ul>
+          </div>
+        </li>
+        <li data-org="Silvermine" data-yr="2018">
+          <button class="row" aria-haspopup="dialog"><h3>Mobile analytics pipeline</h3><span class="org">Silvermine</span><span class="yr">2018</span></button>
+          <div class="detail">
+            <div class="prose"><p>An analytics pipeline for mobile-app events and a push-notification service on AWS, along with a configuration service and an avatar-generation engine.</p></div>
+            <ul class="stack"><li>Scala</li><li>Kafka</li><li>MongoDB</li><li>AWS</li></ul>
+          </div>
+        </li>
+      </ul>
+      <p class="index-note">Select a project to read more.</p>
+    </div>
+  </section>
+
+  <section class="sec" id="path" aria-labelledby="h-path">
+    <h2 id="h-path">Experience</h2>
+    <ol class="jobs" reversed>
+      <li><span class="yrs">2025 to now</span><div><h3>Co-Founder and CTO, FidelFolio Investments</h3><p class="where">Remote, Mumbai</p><p>I lead the technology function: strategy, architecture and delivery. I hire engineers, mentor engineers and interns, and own products end to end.</p></div></li>
+      <li><span class="yrs">2021 to 2025</span><div><h3>Product Technical Lead, ChainThat</h3><p class="where">Bengaluru. Senior Developer, Blockchain until 2024</p><p>Promoted to Product Technical Lead in 2024, owning technical delivery, architecture decisions and coordination with product and business teams.</p></div></li>
+      <li><span class="yrs">2019 to 2021</span><div><h3>Manager, Systems, CARE India</h3><p class="where">Patna</p><p>Ran systems for the Bihar Technical Support Program, working with the state Health and ICDS departments.</p></div></li>
+      <li><span class="yrs">2018 to 2019</span><div><h3>Lead Engineer, Silvermine Group</h3><p class="where">Bengaluru</p><p>Built data and notification services and coached developers through code reviews.</p></div></li>
+      <li><span class="yrs">2013 to 2018</span><div><h3>Senior Software Engineer, HCL Technologies</h3><p class="where">Chennai</p><p>Platform software for digital TVs and multifunction printers, and an error-tracking tool. Won multiple MVP awards from Konica Minolta, Japan.</p></div></li>
+    </ol>
+  </section>
+
+  <section class="sec" aria-labelledby="h-skills">
+    <h2 id="h-skills">Skills</h2>
+    <div class="skills">
+      <div><h3>AI and agentic systems</h3><p>LangGraph, OpenAI API, MCP, n8n, vector databases, Claude Code, GitHub Copilot</p></div>
+      <div><h3>Backend and architecture</h3><p>Python, FastAPI, Java, Spring Boot, Node.js, REST APIs, microservices</p></div>
+      <div><h3>Data engineering</h3><p>pandas, SQLAlchemy, ETL, Kafka, MySQL, PostgreSQL, MongoDB</p></div>
+      <div><h3>Frontend and mobile</h3><p>React, Android, Kotlin</p></div>
+      <div><h3>Cloud and DevOps</h3><p>AWS, Docker, Linux, nginx, CI/CD</p></div>
+      <div><h3>Distributed ledgers</h3><p>R3 Corda, Hyperledger Fabric, Ethereum</p></div>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-edu">
+    <h2 id="h-edu">Education</h2>
+    <ul class="edu">
+      <li><b>Executive MTech, Blockchain and Big Data, IIT Patna</b><span>2023 to 2025. Capstone on drug supply-chain traceability with Hyperledger Fabric; a project on blockchain health records with Ethereum and IPFS.</span></li>
+      <li><b>PG Diploma, Software Development (Blockchain), IIIT Bangalore</b><span>2019 to 2020. CGPA 3.61 of 4.</span></li>
+      <li><b>BE, Electronics and Communication Engineering, JNNCE</b><span>2008 to 2012. First Class. Final-year project selected for IIT Bombay's e-Yantra programme.</span></li>
+    </ul>
+  </section>
+</main>
+
+<footer class="close" id="contact">
+  <h2>Building something that has to be trusted?</h2>
+  <div class="links">
+    <a href="mailto:just.apurva@gmail.com">just.apurva@gmail.com</a>
+    <a href="https://www.linkedin.com/in/apurva-raj-b3918b24/" rel="noopener">LinkedIn</a>
+    <a href="https://github.com/apurvaRaj" rel="noopener">GitHub</a>
+    <a href="learning/">Learning log</a>
+  </div>
+  <small>© 2026 Apurva Raj</small>
+</footer>
+</div>
+
+<div class="scrim" aria-hidden="true"></div>
+<div class="tray" id="tray" role="dialog" aria-modal="true" aria-labelledby="tray-title" aria-hidden="true" hidden>
+  <div class="grabber" aria-hidden="true"><span></span></div>
+  <div class="tray-body">
+    <div class="tray-head">
+      <div><p class="meta"></p><h3 id="tray-title"></h3></div>
+      <button class="tray-close" aria-label="Close">✕</button>
+    </div>
+    <div class="tray-slot"></div>
+  </div>
+</div>
+
+<script src="site.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+const lessons = (await getCollection('learning')).sort((a, b) => b.data.day - a.data.day);
+const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+---
+<Base title="Learning log" description="Apurva Raj's day-by-day learning log: interactive lessons, labs and small exercises, starting with storage engines from Designing Data-Intensive Applications." crumbs={[{ name: 'Learning', href: '/learning/' }]}>
+  <header class="page-head">
+    <div class="wrap">
+      <h1>Learning log</h1>
+      <p class="lede">What I’m studying, one day at a time: interactive lessons, labs and small exercises.</p>
+    </div>
+  </header>
+  <div class="wrap log">
+    <ol>
+      {lessons.map((l) => (
+        <li>
+          <div class="when"><p class="day">Day {l.data.day}</p><time class="muted" datetime={l.data.date.toISOString()}>{fmt(l.data.date)}</time></div>
+          <div>
+            <h2><a href={l.data.href}>{l.data.title}</a></h2>
+            <p class="muted">{l.data.description}</p>
+            <ul class="chips">{l.data.topics.map((t) => <li>{t}</li>)}</ul>
+            {l.data.exercises.length > 0 && (
+              <div class="ex"><p>Exercises</p><ul>{l.data.exercises.map((e) => <li><a href={e.href}>{e.label}</a> <span class="muted">{e.note}</span></li>)}</ul></div>
+            )}
+          </div>
+        </li>
+      ))}
+    </ol>
+  </div>
+</Base>
+<style>
+  .log { padding-block: 40px 120px; }
+  .log > ol { list-style: none; padding: 0; }
+  .log > ol > li { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 16px 48px; padding: 40px 0; border-bottom: 1px solid var(--line); }
+  .day { color: var(--amber); font-weight: 700; }
+  h2 { font-size: var(--s3); }
+  h2 a { text-decoration: none; }
+  h2 a:hover { text-decoration: underline; }
+  .log p.muted { margin: 12px 0 18px; max-width: 66ch; }
+  .ex { margin-top: 22px; font-size: var(--s-1); }
+  .ex ul { margin-top: 8px; padding-left: 1.1em; display: grid; gap: 6px; }
+  @media (max-width: 760px) { .log > ol > li { grid-template-columns: 1fr; } }
+</style>

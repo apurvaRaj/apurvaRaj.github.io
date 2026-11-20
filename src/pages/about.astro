@@ -1,0 +1,56 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../config/site';
+const profile = { '@type': 'ProfilePage', mainEntity: { '@id': new URL('/#person', Astro.site).href }, name: `About ${SITE.name}`, url: new URL('/about/', Astro.site).href };
+---
+<Base title="About" description="About Apurva Raj: a technology leader and hands-on engineer who builds data platforms, enterprise systems and agentic AI, and values software that is simple, reliable and easy to trust." type="profile" crumbs={[{ name: 'About', href: '/about/' }]} jsonld={[profile]}>
+  <header class="page-head">
+    <div class="wrap about-head">
+      <div>
+        <h1>About</h1>
+        <p class="lede">I build the technology that businesses run on, and I still write the code.</p>
+      </div>
+      <div class="portrait" role="img" aria-label="Monogram for Apurva Raj"><span>AR</span></div>
+    </div>
+  </header>
+  <div class="wrap about">
+    <section class="prose">
+      <h2>Background</h2>
+      <p>Over 13 years I have designed and delivered platforms in fintech, insurance, public health and consumer technology. I started in enterprise software at HCL Technologies, building platform software for digital TVs and multifunction printers, and moved into backend and data systems at Silvermine Group.</p>
+      <p>At CARE India I ran systems for a statewide public-health programme in Bihar and led the team that built Sanjivan, the state’s COVID-19 app. At ChainThat I helped build a blockchain insurance platform on R3 Corda for Berkshire Hathaway and later led its technical delivery. Today I am Co-Founder and CTO of FidelFolio Investments, a SEBI-registered investment adviser, where I built the firm’s data platform, backtesting engines and AI workflows.</p>
+      <p>Alongside work I completed a PG Diploma in blockchain at IIIT Bangalore and an Executive MTech in Blockchain & Big Data at IIT Patna.</p>
+
+      <h2>How I think about technology</h2>
+      <p>I value software that is simple, reliable and easy to trust. The systems I care most about are the ones people depend on without thinking about them: a health worker’s daily report, an insurer’s renewal, a client’s portfolio report.</p>
+
+      <h2>Engineering principles</h2>
+      <ul>
+        <li><strong>One source of truth.</strong> When every output reads from the same data, the numbers agree.</li>
+        <li><strong>Validate before you replace.</strong> A new system runs beside the old one until the differences are explained.</li>
+        <li><strong>AI with a person in the loop.</strong> Agents get only the access each step needs, and people approve what reaches clients.</li>
+        <li><strong>Write decisions down.</strong> Edge cases are decided once and recorded, not rediscovered.</li>
+      </ul>
+
+      <h2>Leadership</h2>
+      <p>I lead technology hands-on: I own strategy, architecture and delivery, hire and mentor engineers and interns, and still write and review code. I use AI coding agents such as Claude Code as part of how the team builds.</p>
+
+      <h2>What I’m exploring</h2>
+      <p>Agentic systems that are safe to run on real work, quantitative finance, time-series analysis and factor models. I keep a <a href="/learning/">day-by-day learning log</a> of what I study.</p>
+    </section>
+    <aside class="card">
+      <h2>Get in touch</h2>
+      <p class="muted">Open to technology leadership roles, consulting and collaboration.</p>
+      <p><a class="btn primary" href={`mailto:${SITE.email}`}>Email me</a></p>
+      <p><a href={SITE.links.linkedin} rel="me noopener">LinkedIn</a> · <a href={SITE.links.github} rel="me noopener">GitHub</a> · <a href="/resume.pdf" download>Resume (PDF)</a></p>
+    </aside>
+  </div>
+</Base>
+<style>
+  .about-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 40px; align-items: end; }
+  .portrait { width: clamp(120px, 16vw, 200px); aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 35% 30%, #22345F, #0B1222 70%); border: 1px solid var(--line-strong); box-shadow: 0 0 80px rgba(91,140,255,.25); }
+  .portrait span { font: 760 clamp(2rem, 4vw, 3.2rem)/1 var(--display); font-stretch: 125%; letter-spacing: .02em; }
+  .about { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 56px clamp(32px, 6vw, 96px); padding-block: 40px 120px; align-items: start; }
+  .card { position: sticky; top: 100px; border: 1px solid var(--line); border-radius: 18px; padding: 28px; display: grid; gap: 14px; background: var(--deep); }
+  .card h2 { font-size: var(--s2); }
+  @media (max-width: 900px) { .about { grid-template-columns: 1fr; } .card { position: static; } .about-head { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,24 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const all = await getCollection('insights', (e) => !e.data.draft);
+  const tags = [...new Set(all.flatMap((a) => a.data.tags))];
+  return tags.map((tag) => ({ params: { tag }, props: { articles: all.filter((a) => a.data.tags.includes(tag)).sort((a, b) => +b.data.date - +a.data.date) } }));
+}
+const { tag } = Astro.params as { tag: string };
+const { articles } = Astro.props;
+---
+<Base title={`#${tag} — Insights`} description={`Articles by Apurva Raj tagged ${tag}.`} crumbs={[{ name: 'Insights', href: '/insights/' }, { name: `#${tag}`, href: `/insights/tags/${tag}/` }]}>
+  <header class="page-head"><div class="wrap"><h1>#{tag}</h1></div></header>
+  <div class="wrap list">
+    <ol>{articles.map((a: any) => <li><a href={`/insights/${a.id}/`}><b>{a.data.title}</b><span class="muted">{a.data.description}</span></a></li>)}</ol>
+  </div>
+</Base>
+<style>
+  .list { padding-block: 48px 120px; }
+  ol { list-style: none; padding: 0; }
+  li a { display: grid; gap: 6px; padding: 22px 0; border-bottom: 1px solid var(--line); text-decoration: none; }
+  b { font: 650 var(--s1)/1.2 var(--display); }
+</style>

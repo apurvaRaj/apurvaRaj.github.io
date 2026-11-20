@@ -1,0 +1,23 @@
+---
+import Article from '../../layouts/Article.astro';
+import { getCollection, render } from 'astro:content';
+import { readingTime } from '../../scripts/reading';
+
+export async function getStaticPaths() {
+  const all = await getCollection('insights', (e) => !e.data.draft);
+  return all.map((a) => {
+    // related: same category first, then shared tags
+    const related = all
+      .filter((o) => o.id !== a.id)
+      .map((o) => ({ o, score: (o.data.category === a.data.category ? 2 : 0) + o.data.tags.filter((t) => a.data.tags.includes(t)).length }))
+      .filter((x) => x.score > 0).sort((x, y) => y.score - x.score).slice(0, 3).map((x) => x.o);
+    return { params: { slug: a.id }, props: { a, related } };
+  });
+}
+const { a, related } = Astro.props;
+const { Content, headings } = await render(a);
+---
+<Article id={a.id} title={a.data.title} description={a.data.description} date={a.data.date} updated={a.data.updated}
+  category={a.data.category} tags={a.data.tags} minutes={readingTime(a.body ?? '')} headings={headings} related={related}>
+  <Content />
+</Article>

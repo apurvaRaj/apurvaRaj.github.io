@@ -1,0 +1,71 @@
+---
+// Editorial reading layout: no 3D, no scroll effects, just type.
+import Base from './Base.astro';
+import { CATEGORIES } from '../config/categories';
+import { SITE } from '../config/site';
+interface Heading { depth: number; slug: string; text: string }
+interface Related { id: string; data: { title: string; description: string } }
+interface Props {
+  id: string; title: string; description: string; date: Date; updated?: Date;
+  category: string; tags: string[]; minutes: number; headings: Heading[]; related: Related[];
+}
+const { id, title, description, date, updated, category, tags, minutes, headings, related } = Astro.props;
+const url = new URL(`/insights/${id}/`, Astro.site).href;
+const cat = CATEGORIES[category];
+const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+const article = {
+  '@type': 'Article', headline: title, description, datePublished: date.toISOString(), dateModified: (updated ?? date).toISOString(),
+  author: { '@id': new URL('/#person', Astro.site).href }, publisher: { '@id': new URL('/#person', Astro.site).href },
+  mainEntityOfPage: url, articleSection: cat.label, keywords: tags.join(', '), image: new URL('/og/default.png', Astro.site).href,
+};
+const share = [
+  { label: 'LinkedIn', href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}` },
+  { label: 'X', href: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}` },
+];
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+<Base title={title} description={description} type="article" published={date} modified={updated} jsonld={[article]}
+  crumbs={[{ name: 'Insights', href: '/insights/' }, { name: cat.label, href: `/insights/category/${category}/` }, { name: title, href: `/insights/${id}/` }]}>
+  <header class="page-head art-head">
+    <div class="wrap narrow">
+      <nav aria-label="Breadcrumb"><ol class="crumbs"><li><a href="/insights/">Insights</a></li><li><a href={`/insights/category/${category}/`}>{cat.label}</a></li></ol></nav>
+      <h1>{title}</h1>
+      <p class="lede">{description}</p>
+      <p class="byline muted">{SITE.name} · <time datetime={date.toISOString()}>{fmt(date)}</time>{updated && <> · updated <time datetime={updated.toISOString()}>{fmt(updated)}</time></>} · {minutes} min read</p>
+    </div>
+  </header>
+  <div class="wrap layout">
+    {toc.length > 2 && (
+      <nav class="toc" aria-label="Table of contents">
+        <p class="muted">Contents</p>
+        <ol>{toc.map((h) => <li class={`d${h.depth}`}><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
+      </nav>
+    )}
+    <article class="prose"><slot /></article>
+  </div>
+  <footer class="wrap narrow art-foot">
+    {tags.length > 0 && <ul class="chips">{tags.map((t) => <li><a href={`/insights/tags/${t}/`}>#{t}</a></li>)}</ul>}
+    <p class="share">Share: {share.map((s) => <a href={s.href} rel="noopener" target="_blank">{s.label}</a>)}</p>
+    {related.length > 0 && (
+      <section aria-labelledby="rel"><h2 id="rel">Related</h2>
+        <ul class="rel">{related.map((r) => <li><a href={`/insights/${r.id}/`}><b>{r.data.title}</b><span class="muted">{r.data.description}</span></a></li>)}</ul>
+      </section>
+    )}
+  </footer>
+</Base>
+<style>
+  .narrow { max-width: 920px; }
+  .art-head h1 { font-size: clamp(2.2rem, 5vw, 4rem); max-width: 22ch; }
+  .byline { margin-top: 20px; font-size: var(--s-1); }
+  .layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 48px; padding-block: 56px 40px; max-width: 1100px; }
+  .toc { position: sticky; top: 100px; align-self: start; font-size: var(--s-1); }
+  .toc ol { list-style: none; padding: 0; margin-top: 10px; display: grid; gap: 8px; }
+  .toc .d3 { padding-left: 12px; }
+  .toc a { text-decoration: none; color: #C9D0DD; }
+  .art-foot { padding-bottom: 120px; display: grid; gap: 28px; }
+  .art-foot .chips a { text-decoration: none; }
+  .share { display: flex; gap: 16px; font-size: var(--s-1); color: var(--slate); }
+  .rel { list-style: none; padding: 0; display: grid; gap: 4px; margin-top: 14px; }
+  .rel a { display: grid; gap: 4px; padding: 16px 0; border-bottom: 1px solid var(--line); text-decoration: none; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .toc { position: static; } }
+</style>

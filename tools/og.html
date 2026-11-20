@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:A;src:url('../node_modules/@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2') format('woff2');font-weight:100 900;font-stretch:62% 125%}
+*{margin:0;box-sizing:border-box}body{width:1200px;height:630px;background:#06080F;color:#E8ECF4;font-family:A;overflow:hidden;position:relative}
+canvas{position:absolute;inset:0}
+.t{position:absolute;left:72px;bottom:64px}
+.r{font-size:22px;color:#8D96AA;font-weight:500}
+h1{font-size:132px;font-weight:780;font-stretch:122%;letter-spacing:-.03em;line-height:.9;margin-top:18px}
+.p{margin-top:26px;font-size:26px;font-weight:600}.p span{color:#FFB547;margin:0 14px}
+</style></head><body><canvas id="c" width="1200" height="630"></canvas>
+<div class="t"><p class="r">Co-Founder &amp; CTO, FidelFolio Investments</p><h1>APURVA RAJ</h1><p class="p">Technology Leader<span>•</span>AI &amp; Agentic Systems<span>•</span>Enterprise Architecture</p></div>
+<script>
+const c=document.getElementById('c').getContext('2d');let s=7;const r=()=>(s=(s*16807)%2147483647)/2147483647;
+const g=()=>Math.sqrt(-2*Math.log(Math.max(1e-6,r())))*Math.cos(6.283*r());
+const cx=900,cy=250;for(let i=0;i<26000;i++){let x,y;if(r()<.12){const rr=Math.pow(r(),2)*40,a=r()*6.283;x=Math.cos(a)*rr;y=Math.sin(a)*rr*.5}else{const arm=i%4,rr=20+Math.pow(r(),1.5)*330,a=arm*1.5708+rr*.014+g()*.22;x=Math.cos(a)*rr;y=Math.sin(a)*rr*.42}
+const amb=r()>.955;c.fillStyle=amb?'rgba(255,181,71,.8)':'rgba(91,140,255,'+(.25+r()*.5)+')';c.fillRect(cx+x,cy+y,1.4,1.4)}
+const grd=c.createRadialGradient(cx,cy,0,cx,cy,60);grd.addColorStop(0,'rgba(255,255,255,.95)');grd.addColorStop(.25,'rgba(91,140,255,.6)');grd.addColorStop(1,'rgba(91,140,255,0)');c.fillStyle=grd;c.fillRect(cx-60,cy-60,120,120);
+</script></body></html>

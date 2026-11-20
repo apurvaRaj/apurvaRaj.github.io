@@ -1,0 +1,40 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+const STATUS: Record<string, string> = { live: 'Live', 'in-development': 'In development', delivered: 'Delivered', academic: 'Academic' };
+const list = { '@type': 'ItemList', itemListElement: projects.map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: new URL(`/projects/${p.id}/`, Astro.site).href, name: p.data.title })) };
+---
+<Base title="Projects and case studies" description="Case studies by Apurva Raj: quant investment tech, blockchain insurance for Berkshire Hathaway, digital health, AI agents and data engineering." crumbs={[{ name: 'Projects', href: '/projects/' }]} jsonld={[list]}>
+  <header class="page-head">
+    <div class="wrap">
+      <h1>Selected work</h1>
+      <p class="lede">Seven systems across fintech, insurance, public health, Web3 and AI. Each case study covers the problem, the architecture, my role and the decisions behind it.</p>
+    </div>
+  </header>
+  <section class="wrap index">
+    <ol>
+      {projects.map((p) => (
+        <li>
+          <a href={`/projects/${p.id}/`}>
+            <span class="meta"><span>{p.data.domain}</span><span>{p.data.period}</span><span class="status">{STATUS[p.data.status]}</span></span>
+            <span class="title">{p.data.title}</span>
+            <span class="sum">{p.data.summary}</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </section>
+</Base>
+<style>
+  .index { padding-block: 40px 120px; }
+  ol { list-style: none; padding: 0; }
+  li a { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 10px 48px; padding: 34px 0; border-bottom: 1px solid var(--line); text-decoration: none; }
+  .meta { display: flex; flex-direction: column; gap: 4px; font-size: var(--s-1); color: var(--slate); grid-row: span 2; }
+  .meta span:first-child { color: var(--amber); font-weight: 600; }
+  .status { margin-top: 6px; }
+  .title { font: 680 clamp(1.5rem, 2.8vw, 2.4rem)/1.05 var(--display); letter-spacing: -.025em; transition: transform .3s var(--ease-out); }
+  .sum { color: #C9D0DD; max-width: 60ch; }
+  @media (hover: hover) { li a:hover .title { transform: translateX(8px); } }
+  @media (max-width: 760px) { li a { grid-template-columns: 1fr; } .meta { grid-row: auto; flex-direction: row; flex-wrap: wrap; gap: 4px 14px; } }
+</style>

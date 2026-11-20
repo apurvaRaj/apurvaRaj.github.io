@@ -1,0 +1,25 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Page not found" description="This page doesn't exist." noindex>
+  <section class="nf">
+    <div class="wrap">
+      <p class="code num">404</p>
+      <h1>This page drifted out of the universe.</h1>
+      <p class="muted">The address may have changed or never existed. These will get you back on course:</p>
+      <ul>
+        <li><a class="btn primary" href="/">Home</a></li>
+        <li><a class="btn" href="/projects/">Projects</a></li>
+        <li><a class="btn" href="/insights/">Insights</a></li>
+        <li><a class="btn" href="/#contact">Contact</a></li>
+      </ul>
+    </div>
+  </section>
+</Base>
+<style>
+  .nf { min-height: 80svh; display: grid; align-items: center; padding-top: 120px; }
+  .code { font: 760 clamp(5rem, 18vw, 12rem)/1 var(--display); font-stretch: 125%; color: transparent; -webkit-text-stroke: 1.5px var(--blue); }
+  h1 { font-size: clamp(1.8rem, 4vw, 3rem); margin-top: 12px; }
+  p { margin-top: 14px; }
+  ul { list-style: none; padding: 0; display: flex; gap: 10px; flex-wrap: wrap; margin-top: 28px; }
+</style>

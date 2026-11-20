@@ -248,3 +248,4 @@ body.tray-open .bar{opacity:0;pointer-events:none}
 .reveal-ready .fact.settled b{color:var(--ink)}
 .reveal-ready .fact.settled span{opacity:1;transform:none}
 .reveal-ready .fact.settled .shape{transform:none}
+.lsub{font:700 var(--s1)/1.1 var(--display);font-stretch:112%;padding:64px var(--gutter) 14px;border-bottom:2px solid var(--ink)}

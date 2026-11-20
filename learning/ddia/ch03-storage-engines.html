@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LSM vs B-tree Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE everyday learning: calm, exact, hands-on
+   IDEA a lab notebook with working machines you poke with buttons, plus the notes from the session
+   PICTURE live LSM-tree, Bloom filter, B-tree stepper and B-tree lab, each changing on every action
+   COLOUR white ground, ink, ultramarine for LSM, carmine for B-tree, green for hits, amber for warnings
+   TYPE Spectral display + Inter text
+   LAYOUT title and contents on top, then one band per topic: notes beside or above its working model; stacks on phone */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#0d0e18);--ink:light-dark(#14110f,#e8e8f0);--mute:light-dark(#585c68,#a6aaba);--rule:light-dark(#d9dbe2,#2d3043);--soft:light-dark(#f4f5f9,#151727);--lsm:light-dark(#1d2bd8,#8d97ff);--lsmS:light-dark(#e9ebff,#1b1f4b);--bt:light-dark(#b4232c,#ff9494);--btS:light-dark(#fdeced,#3a1a1f);--hit:light-dark(#0a7d4f,#5fdca6);--hitS:light-dark(#e2f6ec,#123326);--fp:light-dark(#a35a00,#ffc46b);--fpS:light-dark(#fff3df,#3a2a10)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Inter,system-ui,sans-serif;overflow-x:clip}
+h1,h2{font-family:Spectral,Georgia,serif;font-weight:600;line-height:1.05;letter-spacing:-.02em;text-wrap:balance;margin:0}
+h1{font-size:clamp(32px,5vw,50px)}
+h2{font-size:clamp(26px,3.4vw,36px);margin-bottom:10px}
+h3{font-size:18px;margin:22px 0 6px}
+p,li{max-width:72ch}
+p{margin:0 0 10px}
+.band{padding:clamp(24px,3.5vw,52px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+.lede{color:var(--mute);font-size:17px;margin-top:10px}
+.back{display:inline-block;margin-bottom:14px;color:var(--mute);font-size:14px}
+.scroll{overflow-x:auto}
+nav.scroll{display:flex;gap:6px;margin-top:18px;padding-bottom:4px}
+nav a{flex:none;color:var(--ink);text-decoration:none;border:1px solid var(--rule);border-radius:999px;padding:8px 14px;font-size:14px}
+nav a:hover,nav a:focus-visible{border-color:var(--ink)}
+html{scroll-padding-top:16px;scroll-behavior:smooth}
+.lsmband{background:var(--lsmS)}
+.btband{background:var(--btS)}
+.softband{background:var(--soft)}
+.tag{display:inline-block;font-size:13px;font-weight:600;padding:2px 10px;border-radius:999px;color:var(--bg);margin-bottom:10px}
+.tl{background:var(--lsm)}.tb{background:var(--bt)}.tg{background:var(--ink)}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
+.say{border-left:3px solid var(--ink);padding:10px 14px;background:var(--bg);margin:14px 0;font-family:Spectral,Georgia,serif;font-size:18px;line-height:1.5;max-width:80ch}
+.say b{font-family:Inter,sans-serif;font-size:13px;display:block;color:var(--mute);font-weight:600;margin-bottom:2px}
+pre{background:var(--bg);border:1px solid var(--rule);border-radius:8px;padding:12px;font:13px/1.5 ui-monospace,Menlo,monospace;overflow-x:auto;margin:8px 0 12px}
+code{font:14px ui-monospace,Menlo,monospace;overflow-wrap:anywhere}
+.ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:16px 0}
+.ctl label{display:flex;flex-direction:column;font-size:13px;color:var(--mute);gap:3px}
+input{font:16px Inter,sans-serif;padding:9px 10px;border:1px solid var(--rule);border-radius:8px;background:var(--bg);color:var(--ink);width:8.5em;min-height:44px}
+input:focus-visible,button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+button{font:500 15px Inter,sans-serif;min-height:44px;padding:8px 14px;border-radius:8px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);cursor:pointer}
+button:hover{border-color:var(--ink)}
+button.pri{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button.chip{min-height:36px;padding:4px 12px;font-size:14px}
+.lab{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,2.2fr);gap:12px}
+.panel{background:var(--bg);border:1px solid var(--rule);border-radius:10px;padding:12px}
+.panel h3{margin:0 0 6px;font-size:17px}
+.panel h3 small{font-weight:400;color:var(--mute);font-size:13px;margin-left:6px}
+.note{font-size:13px;color:var(--mute);margin:0 0 8px}
+ul.kv,ul.wal{list-style:none;margin:0;padding:0;font-size:14px}
+ul.kv li{display:flex;justify-content:space-between;gap:8px;padding:3px 6px;border-radius:5px}
+ul.kv li span:last-child{font-variant-numeric:tabular-nums;color:var(--mute)}
+ul.wal li{padding:3px 0;border-bottom:1px dashed var(--rule);font-family:ui-monospace,Menlo,monospace;font-size:13px;overflow-wrap:anywhere}
+li.hit{background:var(--hitS);outline:1.5px solid var(--hit)}
+li.tomb span:last-child{color:var(--bt)}
+.empty{color:var(--mute);font-size:14px}
+#ssts{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.sst{border:1.5px solid var(--lsm);border-radius:8px;padding:8px;background:var(--bg)}
+.sst.skip{opacity:.5;border-style:dashed}
+.sst.fp{border-color:var(--fp)}
+.sst.hit{border-color:var(--hit);box-shadow:0 0 0 2px var(--hitS)}
+.sst.new{animation:pop .6s ease}
+@keyframes pop{from{transform:translateY(-8px);opacity:.3}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.sst.new{animation:none}html{scroll-behavior:auto}}
+.sh{display:flex;justify-content:space-between;gap:6px;font-size:13px;margin-bottom:6px}
+.sh span{color:var(--mute)}
+.bloom{display:grid;grid-template-columns:repeat(16,1fr);gap:2px;margin-bottom:6px}
+.bloom i{height:10px;border-radius:2px;background:var(--rule)}
+.bloom i.on{background:var(--lsm)}
+.bloom i.q{outline:2px solid var(--ink);outline-offset:1px}
+.side{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:12px;margin-top:12px}
+ol.trace{margin:0;padding-left:20px;font-size:15px}
+ol.trace li{margin-bottom:6px}
+.stats{display:grid;gap:10px;align-content:start}
+.stat b{display:block;font:600 28px/1.1 Spectral,serif}
+.stat span{font-size:13px;color:var(--mute)}
+.warn{background:var(--fpS);border-left:3px solid var(--fp);padding:6px 10px;font-size:14px;margin-top:8px}
+.bits{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:4px;margin:10px 0 2px}
+.bit{border:1.5px solid var(--rule);border-radius:6px;height:46px;display:flex;align-items:center;justify-content:center;font:600 16px Inter,sans-serif;color:var(--mute);background:var(--bg)}
+.bit.on{background:var(--lsmS);color:var(--lsm);border-color:var(--lsm)}
+.bit.q{outline:2.5px solid var(--ink);outline-offset:1px}
+.bit.miss{background:var(--btS);color:var(--bt);border-color:var(--bt)}
+.idx{display:grid;grid-template-columns:repeat(16,minmax(0,1fr));gap:4px;font-size:13px;color:var(--mute);text-align:center}
+.out{margin-top:10px;padding:12px 14px;border-radius:8px;background:var(--soft);font-size:15px}
+.math{font:13px/1.7 ui-monospace,Menlo,monospace;color:var(--mute);margin-top:12px;overflow-wrap:anywhere}
+.tree{padding:8px 4px 4px;display:flex;justify-content:center;min-width:max-content}
+.bn{display:flex;flex-direction:column;align-items:center}
+.pg{display:flex;align-items:center;gap:4px;border:1.5px solid var(--bt);border-radius:7px;padding:5px 7px;background:var(--bg);font-size:14px;white-space:nowrap}
+.pg small{font-size:13px;color:var(--mute);margin-right:2px}
+.pg span{padding:1px 6px;border-radius:4px;background:var(--btS)}
+.pg span.hit{background:var(--hitS);outline:1.5px solid var(--hit)}
+.pg span.add{background:var(--lsmS);color:var(--lsm);outline:1.5px solid var(--lsm)}
+.pg.p,.pg.path{box-shadow:0 0 0 3px color-mix(in srgb,var(--ink) 30%,transparent)}
+.pg.w,.pg.made{background:var(--btS)}
+.pg.split{border-style:dashed;border-width:2px}
+.pg.made{border-width:2.5px}
+.pg.over{border:2.5px solid var(--fp);background:var(--fpS)}
+.kids{display:flex;position:relative;padding-top:14px}
+.kids::before{content:"";position:absolute;top:0;left:50%;height:14px;border-left:1.5px solid var(--mute)}
+.kids>.bn{position:relative;padding:14px 6px 0}
+.kids>.bn::before{content:"";position:absolute;top:0;left:50%;height:14px;border-left:1.5px solid var(--mute)}
+.kids>.bn::after{content:"";position:absolute;top:0;left:0;right:0;border-top:1.5px solid var(--mute)}
+.kids>.bn:first-child::after{left:50%}
+.kids>.bn:last-child::after{right:50%}
+.rg{font-size:13px;color:var(--mute);margin:2px 0 3px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--mute);margin-top:8px}
+.legend i{display:inline-block;width:14px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px;border:1.5px solid var(--bt)}
+.stepbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0}
+.stepbar span{font-size:14px;color:var(--mute)}
+#sttl{font:600 20px/1.2 Spectral,serif;margin:4px 0}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;vertical-align:top;padding:10px 8px;border-bottom:1px solid var(--rule)}
+th{font-weight:600}
+th.l{color:var(--lsm)}th.b{color:var(--bt)}
+td.n{text-align:right;white-space:nowrap}
+.hooks{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.hook{border-top:3px solid var(--ink);padding-top:10px}
+.hook.l{border-color:var(--lsm)}.hook.b{border-color:var(--bt)}
+.hook big{display:block;font:600 22px/1.15 Spectral,serif;margin-bottom:6px}
+.cardrow{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:20px;align-items:start}
+.flash{border:1.5px solid var(--ink);border-radius:14px;min-height:220px;padding:22px;display:flex;flex-direction:column;justify-content:center;cursor:pointer;background:var(--soft);font-size:19px}
+.flash small{font-size:13px;color:var(--mute);margin-bottom:8px}
+.flash.back{background:var(--hitS);border-color:var(--hit)}
+.fbtn{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.scen{border:1px solid var(--rule);border-radius:10px;padding:14px;margin-bottom:10px;background:var(--bg)}
+.scen .opts{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.scen button.ok{background:var(--hitS);border-color:var(--hit)}
+.scen button.no{background:var(--btS);border-color:var(--bt)}
+.says{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:4px 24px}
+footer{color:var(--mute);font-size:13px}
+@media(max-width:820px){.lab{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.lab .disk{grid-column:1/-1}.cardrow,.cols{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){.lab,.side{grid-template-columns:minmax(0,1fr)}table{font-size:13px}th,td{padding:6px 4px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--rule)}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:7em}.stack td::before{content:attr(data-l);float:inline-start;width:6.5em;margin-inline-start:-7em;font-weight:600}input{width:7em}.bit{height:34px;font-size:13px}.idx{font-size:11px}}
+</style>
+<script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
+</head>
+<body>
+<header class="band"><div class="wrap">
+<a class="back" href="../index.html">Back to all lessons</a>
+<h1>Storage engines, by hand: LSM-tree vs B-tree</h1>
+<p class="lede">DDIA chapter 3, Day 1 of interview prep (20 Nov 2026). Notes from the session plus working models. Press the buttons, read the trace, and watch what each engine writes and reads.</p>
+<nav class="scroll"><a href="#lsm">LSM-tree</a><a href="#bloom">Bloom filters</a><a href="#btree">B-tree</a><a href="#blab">B-tree lab</a><a href="#wal">WAL in a B-tree</a><a href="#compare">Side by side</a><a href="#say">Interview lines</a><a href="#hooks">Memory hooks</a><a href="#cards">Flashcards</a><a href="#check">Which engine?</a></nav>
+</div></header>
+
+<section class="band lsmband" id="lsm"><div class="wrap">
+<span class="tag tl">LSM-tree</span>
+<h2>Write fast now, tidy up later</h2>
+<div class="cols">
+<div>
+<h3>Write path</h3>
+<p>Each write is appended to the <b>WAL</b> on disk, in arrival order, and inserted into the <b>memtable</b> in memory, which is kept sorted. Nothing is written to an SSTable at this point.</p>
+<p>When the <b>memtable</b> fills up (not the WAL), it is written to disk as a new <b>SSTable</b>: an immutable, sorted file. The WAL for that memtable is then deleted, because the data is safe on disk.</p>
+<h3>Read path</h3>
+<p>Check the memtable, then SSTables from newest to oldest. Bloom filters let the engine skip files. Stop at the first match, because the newest version wins.</p>
+<h3>Compaction</h3>
+<p>In the background, merge some SSTables (not always all) like a merge sort. Keep the newest value per key, drop overwritten values and tombstones, write new files, delete the old ones.</p>
+</div>
+<div>
+<h3>Why a memtable if the WAL holds the same data?</h3>
+<p>Same data, different shape. The WAL is unsorted, in arrival order: good for crash recovery, useless for lookups. The memtable is sorted (a skip list or balanced tree), so recent reads are fast and the flush writes a sorted file in one pass. The WAL is read only after a crash, to rebuild the memtable.</p>
+<h3>SSTable properties</h3>
+<p>Sorted by key, each key at most once per file, immutable. Split into compressed blocks, with a sparse index (first key of each block) and a Bloom filter. It is never sorted on disk: it is born sorted, because the memtable is sorted at flush and compaction merges already-sorted files.</p>
+<p>Order is byte order, so <code>"10"</code> sorts before <code>"9"</code>. Use fixed-width or zero-padded keys, such as <code>TCS#2026-11-20</code>.</p>
+<h3>Chunking and sizes</h3>
+<p>Writes are not chunked up front. Each write goes into the memtable one at a time. File boundaries come later: a flush turns one full memtable into one file, and compaction cuts its output into files of a target size. All sizes are tunable. RocksDB, for example, defaults to about a 64 MB memtable, about 64 MB target files and 4 KB blocks. A bigger memtable means fewer flushes, more memory, and a slower WAL replay after a crash.</p>
+<h3>Why is it called a tree?</h3>
+<p>From the 1996 paper by O'Neil and colleagues, where the structure was a series of trees, one in memory and several on disk, merged downwards. Modern engines are a sorted memtable plus levels of sorted files: a layered hierarchy, not a tree you search by following pointers.</p>
+</div>
+</div>
+
+<h3 style="margin-top:28px">LSM-tree lab</h3>
+<div class="ctl">
+<label for="lk">Key<input id="lk" value="TCS" autocomplete="off"></label>
+<label for="lv">Value (price)<input id="lv" value="4010" inputmode="decimal" autocomplete="off"></label>
+<button class="pri" id="lput">Put</button><button id="lget">Get</button><button id="ldel">Delete</button><button id="lflush">Flush memtable</button><button id="lcomp">Compact</button><button id="lsamp">Sample state</button><button id="lreset">Empty</button>
+</div>
+<div class="lab">
+<div class="panel"><h3>WAL <small>on disk, append-only</small></h3><p class="note">Crash insurance for the memtable.</p><ul class="wal" id="wal"></ul></div>
+<div class="panel"><h3>Memtable <small id="memcap"></small></h3><p class="note">In memory, kept sorted. Flushes at 4 keys.</p><ul class="kv" id="mem"></ul></div>
+<div class="panel disk"><h3>SSTables on disk <small>newest first, never edited</small></h3><p class="note">Bar of 16 cells = Bloom filter. Outlined cells = bits checked by the last Get.</p><div id="ssts"></div></div>
+</div>
+<div class="side">
+<div class="panel"><h3>What just happened</h3><ol class="trace" id="ltrace"></ol><div class="warn" id="warn" hidden>Three or more files: a missing key may need several reads. Press Compact.</div></div>
+<div class="panel stats">
+<div class="stat"><b id="lr">—</b><span>files actually read by the last Get</span></div>
+<div class="stat"><b id="nf">0</b><span>SSTables a read may have to check</span></div>
+<div class="stat"><b id="wa">—</b><span>entries written to disk per Put so far (WAL not counted). Compaction pushes this up.</span></div>
+</div>
+</div>
+<p class="note" style="margin-top:10px">Sample tickers and prices are made up. Try Get TCS, Get ITC and Get ZOMATO, then Compact and repeat.</p>
+</div></section>
+
+<section class="band" id="bloom"><div class="wrap">
+<span class="tag tl">Bloom filter</span>
+<h2>A card of ticked boxes that says "no" or "maybe"</h2>
+<div class="cols">
+<div>
+<h3>The problem it solves</h3>
+<p>A read checks SSTables one by one, and each file read is slow. For a key that doesn't exist, the engine would open every file just to prove it isn't there. A full list of keys per file would use too much memory. A Bloom filter is a small row of bits per file, kept in memory, that answers "could this key be here?"</p>
+<h3>How it works</h3>
+<p>Picture a card with 16 numbered boxes in front of a shelf. When a key is added, fixed rules (hash functions) turn it into box numbers, and those boxes are ticked. To check a key, apply the same rules:</p>
+<ul><li><b>Any box empty</b> → the key was never added → <b>definitely not here</b>. Skip the file.</li><li><b>All boxes ticked</b> → <b>maybe</b>. Read the file. Other keys may have ticked those boxes, which is a false positive.</li></ul>
+<p>Boxes are never unticked, so a key that really is there always finds its boxes ticked. There is never a false "no".</p>
+<h3>One filter per SSTable, sized to it</h3>
+<p>Each SSTable gets its own filter, built when the file is written. Its size is the file's key count times a bits-per-key setting, so files differ in size but share a false-positive rate. About 10 bits per key gives about 1% false positives. It is stored inside the SSTable and loaded into memory when the file is opened. It can't grow or delete keys, which is fine because SSTables never change. Compaction builds a new filter for each new file.</p>
+</div>
+<div>
+<h3>Worked example: two toy rules, A=1 … Z=26</h3>
+<p>Rule 1: sum of letters, mod 16. Rule 2: first + last letter, mod 16.</p>
+<div class="scroll"><table>
+<thead><tr><th>Key</th><th>Rule 1</th><th>Rule 2</th><th>Boxes</th></tr></thead>
+<tbody>
+<tr><td>TCS</td><td>20+3+19 = 42 → 10</td><td>20+19 = 39 → 7</td><td>10, 7</td></tr>
+<tr><td>INFY</td><td>9+14+6+25 = 54 → 6</td><td>9+25 = 34 → 2</td><td>6, 2</td></tr>
+<tr><td>HDFC</td><td>8+4+6+3 = 21 → 5</td><td>8+3 = 11 → 11</td><td>5, 11</td></tr>
+</tbody></table></div>
+<p style="margin-top:10px">Check ITC → boxes 0 and 12 → box 0 empty → definitely not here. Check ONGC → boxes 7 and 2 → both ticked by other keys → "maybe" → read the file → not there: a false positive.</p>
+<div class="ctl" style="margin-bottom:4px">
+<label for="fk">Key (letters)<input id="fk" value="ITC" autocomplete="off"></label>
+<button id="fadd">Add to file</button><button class="pri" id="fchk">Check key</button><button id="frst">Reset</button>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:14px;color:var(--mute)">Try:<button class="chip" data-k="TCS">TCS</button><button class="chip" data-k="ITC">ITC</button><button class="chip" data-k="ONGC">ONGC</button><button class="chip" data-k="SBIN">SBIN</button><button class="chip" data-k="WIPRO">WIPRO</button></div>
+<div class="bits" id="fbits"></div><div class="idx" id="fidx"></div>
+<div class="math" id="fmath"></div>
+<div class="out" id="fout"></div>
+<p class="note" style="margin-top:8px">Keys actually in the file: <span id="fkeys"></span>. Boxes ticked: <span id="fcnt"></span> of 16. The more boxes fill up, the more often "maybe" is wrong.</p>
+</div>
+</div>
+</div></section>
+
+<section class="band btband" id="btree"><div class="wrap">
+<span class="tag tb">B-tree</span>
+<h2>One home per key, edited in place</h2>
+<div class="cols">
+<div>
+<h3>Pages</h3>
+<p>Data lives in fixed-size pages (about 4–16 KB). Leaf pages at the bottom hold the keys and values. Inner pages hold keys as <b>signposts</b> plus pointers to child pages. A page with n keys has n + 1 pointers, one per gap.</p>
+<h3>Where does a key belong?</h3>
+<p>On every page: compare left to right, letter by letter, and stop at the <b>first key bigger than yours</b>. Take the pointer just before it. If none is bigger, take the last pointer. If one is equal, you found it. Real pages use binary search, with the same result.</p>
+<pre>root [ITC, TCS]
+ BHEL  &lt; ITC                → gap 0 (left)
+ SBIN  &gt; ITC, &lt; TCS        → gap 1 (middle)
+ WIPRO &gt; ITC, &gt; TCS        → gap 2 (right)
+ INFY vs ITC: I = I, then N &lt; T → INFY is smaller</pre>
+<p>It always works because every signpost separates its children: everything left of it is smaller, everything right is bigger or equal. A split keeps this true.</p>
+</div>
+<div>
+<h3>Fetch</h3>
+<p>Read the root, pick the gap, read that child, repeat to a leaf. The key is on that leaf or doesn't exist. Cost: one page read per level, the same for a hit or a miss. Real pages hold hundreds of keys, so 3–4 levels cover billions of rows, and the top levels stay in memory.</p>
+<h3>Insert</h3>
+<ol><li>Find the leaf, as in a fetch.</li><li>Write the change to the WAL first.</li><li>If the leaf has room: put the key in sorted position, rewrite the page in place. 1 page written.</li><li>If it's full: split it. The left half stays, the right half goes to a new page, and the middle key moves up to the parent.</li><li>If the parent overflows, it splits too. If the root splits, a new root appears, and the tree grows one level taller at the top. That keeps every leaf at the same depth.</li></ol>
+<h3>B+-trees</h3>
+<p>InnoDB and PostgreSQL use B+-trees: inner pages hold only <b>copies</b> of keys as signposts, all values stay in leaves, and leaves link left to right for range scans. The toys here move the middle key itself up, so a fetch can end on an inner page.</p>
+</div>
+</div>
+
+<h3 style="margin-top:24px">Step through it: eight inserts, two splits, two fetches</h3>
+<div class="stepbar"><button id="sprev">Back</button><button class="pri" id="snext">Next</button><button id="srst">Restart</button><span id="sstp"></span></div>
+<div id="sttl"></div>
+<div class="panel"><div class="scroll"><div class="tree" id="stree"></div></div>
+<div class="legend"><span><i style="box-shadow:0 0 0 3px color-mix(in srgb,var(--ink) 30%,transparent)"></i>page on the path walked</span><span><i style="background:var(--btS);border-width:2.5px"></i>page written or created</span><span><i style="border-color:var(--fp);background:var(--fpS)"></i>overfull, must split</span></div></div>
+<div class="out" id="snote" style="background:var(--bg)"></div>
+</div></section>
+
+<section class="band btband" id="blab" style="padding-top:0"><div class="wrap">
+<h2>B-tree lab</h2>
+<p>Your own tree, max 3 keys per page. Put keys to watch splits; Get to see the path. The example below the lab is the split we traced together.</p>
+<div class="ctl">
+<label for="bk">Key<input id="bk" value="G" autocomplete="off"></label>
+<label for="bv">Value (price)<input id="bv" value="584" inputmode="decimal" autocomplete="off"></label>
+<button class="pri" id="bput">Put</button><button id="bget">Get</button><button id="brand">Put 5 random</button><button id="bsamp">Sample state</button><button id="breset">Empty</button>
+</div>
+<div class="panel"><h3>Pages <small>max 3 keys per page in this toy (real pages hold hundreds)</small></h3>
+<div class="scroll"><div class="tree" id="tree"></div></div>
+<div class="legend"><span><i style="box-shadow:0 0 0 3px color-mix(in srgb,var(--ink) 30%,transparent)"></i>on the path just walked</span><span><i style="background:var(--btS)"></i>page rewritten</span><span><i style="border-style:dashed"></i>page created by a split</span></div>
+</div>
+<div class="side">
+<div class="panel"><h3>What just happened</h3><ol class="trace" id="btrace"></ol><h3 style="margin-top:12px">WAL <small>last few records</small></h3><ul class="wal" id="bwal"></ul></div>
+<div class="panel stats">
+<div class="stat"><b id="bd">0</b><span>tree depth = pages read by a Get that reaches a leaf</span></div>
+<div class="stat"><b id="bw">—</b><span>pages written by the last Put</span></div>
+<div class="stat"><b id="bavg">—</b><span>pages written per Put so far (WAL not counted)</span></div>
+</div>
+</div>
+<h3>Traced together: inserting G</h3>
+<div class="cols">
+<div>
+<pre>Before:        #3 [ITC, RELI]
+  #1 [BHEL,HDFC,INFY] #4 [LT,NTPC,ONGC] #2 [SBIN,TCS,WIPRO]
+
+After G:       #3 [HDFC, ITC, RELI]
+  #1 [BHEL,G] #5 [INFY] #4 [LT,NTPC,ONGC] #2 [SBIN,TCS,WIPRO]</pre>
+<ol><li>Root: G &lt; ITC → left pointer → #1.</li><li>In #1: G &gt; BHEL, G &lt; HDFC → G goes between them → [BHEL, G, HDFC, INFY]: 4 keys, too many.</li><li>Split: [BHEL, G] stay in #1; HDFC (the middle) moves up; [INFY] goes to new page #5.</li><li>Root takes HDFC first → [HDFC, ITC, RELI]: 3 keys, fits. The split stops; no new level.</li><li>3 pages written (#1, #5, #3), all logged to the WAL first. The root is now full, so the next split that reaches it adds a level.</li></ol>
+</div>
+<div>
+<h3 style="margin-top:0">Fetching on that tree</h3>
+<div class="scroll"><table>
+<thead><tr><th>Get</th><th>At the root</th><th>Leaf</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>NTPC</td><td>&gt; HDFC, &gt; ITC, &lt; RELI → pointer 3</td><td>#4</td><td>Found, 2 reads</td></tr>
+<tr><td>INFY</td><td>&gt; HDFC, &lt; ITC → pointer 2</td><td>#5</td><td>Found, 2 reads</td></tr>
+<tr><td>G</td><td>&lt; HDFC → pointer 1</td><td>#1</td><td>Found, 2 reads</td></tr>
+<tr><td>COAL</td><td>&lt; HDFC → pointer 1</td><td>#1</td><td>Would sit between BHEL and G. Not found, still 2 reads</td></tr>
+<tr><td>ZOMATO</td><td>bigger than all → pointer 4</td><td>#2</td><td>Not found, 2 reads</td></tr>
+<tr><td>HDFC</td><td>equal to first key</td><td>—</td><td>Found on the root, 1 read (toy only; a B+-tree continues to the leaf)</td></tr>
+</tbody></table></div>
+<p style="margin-top:10px">A miss costs the same as a hit: if the key existed, it could only be on that one leaf. Compare LSM, where a key could be in the memtable or any SSTable.</p>
+</div>
+</div>
+</div></section>
+
+<section class="band" id="wal"><div class="wrap">
+<span class="tag tb">WAL in a B-tree</span>
+<h2>Log the change before touching the page</h2>
+<div class="cols">
+<div>
+<h3>Why a B-tree needs it</h3>
+<ol><li><b>One change can touch several pages.</b> Inserting G changed #1, #5 and #3. A crash after #1 and #5 but before #3 leaves no pointer to #5: INFY is lost and the tree is corrupt.</li><li><b>A page can be half-written.</b> A 16 KB page is bigger than what the disk writes atomically, so a crash can leave a torn page.</li><li><b>Pages change in memory first.</b> The buffer pool holds dirty pages and writes them back later. Recent committed changes may exist only in memory.</li></ol>
+<h3>Write path</h3>
+<ol><li>Change the pages in the buffer pool and mark them dirty.</li><li>Append log records, each with an increasing <b>LSN</b> (log sequence number). Each page stores the LSN of its last change.</li><li>At commit, flush the log to disk (fsync). Only then reply "committed". Many commits can share one flush (group commit).</li><li>Dirty pages are written to disk later by a background process.</li></ol>
+<pre>LSN 101  page #1: remove HDFC, INFY; insert G
+LSN 102  page #5: new page [INFY]
+LSN 103  page #3: insert HDFC + pointer to #5
+LSN 104  COMMIT</pre>
+<p><b>Write-ahead rule:</b> a dirty page may reach disk only after the log records for its changes are on disk. The log always runs ahead of the pages.</p>
+</div>
+<div>
+<h3>When is the log cleared?</h3>
+<p>Not at commit. A record can be freed only when its page change has reached disk. The <b>checkpoint</b> marks how far that is true, and it can't pass the <b>oldest dirty page</b>. The log is freed from the front, in order.</p>
+<pre>LSN 101  page #1 → flushed
+LSN 102  page #5 → still dirty   ← checkpoint stops here
+LSN 103  page #3 → flushed
+LSN 104  COMMIT
+Freeable: up to 101. After #5 is flushed, the checkpoint moves on.</pre>
+<ul><li><b>InnoDB:</b> a fixed-size redo log used in a circle; space behind the checkpoint is overwritten. If it nearly fills, dirty pages are forced out and writes stall.</li><li><b>PostgreSQL:</b> 16 MB WAL segments, recycled or deleted after a checkpoint, unless a replica's replication slot, archiving or <code>wal_keep_size</code> still needs them. A dead replica with a slot can fill the disk.</li></ul>
+<p>More frequent checkpoints mean faster recovery but more page writing.</p>
+<h3>Crash recovery</h3>
+<ol><li>Find the last checkpoint.</li><li><b>Redo:</b> replay records forward; apply a record if its LSN is newer than the page's LSN.</li><li><b>Undo:</b> roll back transactions that never committed (InnoDB uses undo logs; the method is known as ARIES).</li></ol>
+<p><b>Torn pages:</b> InnoDB's doublewrite buffer writes each page to a side area first; PostgreSQL logs the full page on its first change after a checkpoint.</p>
+<p><b>Other uses:</b> replication (PostgreSQL streams WAL; MySQL uses the separate binlog), point-in-time recovery, and change data capture (e.g. Debezium).</p>
+</div>
+</div>
+<div class="scroll"><table class="stack" style="margin-top:12px">
+<thead><tr><th>WAL</th><th class="b">B-tree</th><th class="l">LSM-tree</th></tr></thead>
+<tbody>
+<tr><td>Protects</td><td>In-place page changes and splits</td><td>The memtable, which lives only in memory</td></tr>
+<tr><td>Freed when</td><td>The checkpoint passes it (oldest dirty page flushed)</td><td>Its memtable is flushed to an SSTable</td></tr>
+<tr><td>Recovery</td><td>Redo onto pages, then undo unfinished transactions</td><td>Replay the log to rebuild the memtable</td></tr>
+</tbody></table></div>
+</div></section>
+
+<section class="band softband" id="compare"><div class="wrap">
+<h2>Side by side</h2>
+<p>If you remember one line: <b>LSM-trees pay later, at read and compaction time. B-trees pay up front, at write time.</b></p>
+<div class="scroll"><table class="stack">
+<thead><tr><th>Question</th><th class="l">LSM-tree</th><th class="b">B-tree</th></tr></thead>
+<tbody>
+<tr><td>How does a write hit disk?</td><td>Sequential: WAL append, then whole sorted files at flush</td><td>Random: overwrite the page that owns the key, plus WAL</td></tr>
+<tr><td>How does a read work?</td><td>Memtable, then SSTables newest to oldest; Bloom filters skip files</td><td>Root to leaf, one page per level; same cost every time</td></tr>
+<tr><td>Where does a key live?</td><td>Possibly in several files (old versions until compaction)</td><td>Exactly one page</td></tr>
+<tr><td>Crash safety</td><td>WAL rebuilds the memtable; SSTables are immutable</td><td>WAL replays half-done page writes and splits; checkpoints free it</td></tr>
+<tr><td>Write amplification from</td><td>Compaction rewriting data again and again</td><td>WAL plus full-page writes for small changes, and splits</td></tr>
+<tr><td>Space</td><td>Compact, compresses well</td><td>Pages left part-empty after splits (fragmentation)</td></tr>
+<tr><td>Main risk</td><td>Compaction falls behind heavy writes; tail latency spikes</td><td>Write throughput limited by random I/O</td></tr>
+<tr><td>Transactions and locks</td><td>Harder: a key's versions are spread out</td><td>Easier: lock a key range on the tree</td></tr>
+<tr><td>Typical fit</td><td>Write-heavy ingest: logs, events, time series, metrics</td><td>Read-heavy, transactional OLTP; predictable latency</td></tr>
+<tr><td>Examples</td><td>RocksDB, LevelDB, Cassandra, HBase, ScyllaDB</td><td>MySQL InnoDB, PostgreSQL, Oracle, SQL Server</td></tr>
+</tbody></table></div>
+<p class="note" style="margin-top:10px">DDIA's caveat: the rule of thumb is a starting point. Always benchmark with your workload.</p>
+</div></section>
+
+<section class="band" id="say"><div class="wrap">
+<h2>Interview lines: say each in about 30 seconds</h2>
+<div class="says">
+<div class="say"><b>LSM-tree</b>An LSM-tree turns writes into sequential I/O. Each write is appended to a WAL and inserted into a sorted in-memory memtable. When the memtable is full, it's flushed as an immutable sorted SSTable and that WAL is dropped. Reads check the memtable, then SSTables newest to oldest, with Bloom filters to skip files. Background compaction merges files, keeps the latest value per key and removes tombstones.</div>
+<div class="say"><b>Bloom filter</b>Each SSTable has its own Bloom filter, built when the file is written and sized by its key count times a bits-per-key setting. It answers "definitely not here" or "maybe", never a false no, so reads can skip files safely. About 10 bits per key gives about 1% false positives.</div>
+<div class="say"><b>B-tree</b>A B-tree stores keys in fixed-size pages arranged as a balanced tree. A read walks root to leaf, one page per level, so the cost is predictable. A write overwrites the leaf page in place; a full page splits and pushes its middle key up, and a root split adds a level at the top.</div>
+<div class="say"><b>WAL in a B-tree</b>A B-tree overwrites pages in place, and one insert can touch several pages, so a crash could corrupt the tree. The WAL logs each change sequentially and is flushed at commit, before the pages are written. Dirty pages are flushed lazily, and after a crash the database redoes the log from the last checkpoint and undoes uncommitted transactions.</div>
+<div class="say"><b>When is the log cleared?</b>Not at commit. It's freed after a checkpoint, once the oldest dirty page has been written to disk. InnoDB reuses a fixed-size circular redo log. PostgreSQL recycles WAL segments unless replicas or archiving still need them.</div>
+<div class="say"><b>Why "tree"?</b>The name comes from the 1996 paper, where the structure was a series of trees merged downwards. Modern LSM engines are a sorted memtable plus levels of sorted files: a hierarchy, not a tree you search by pointers like a B-tree.</div>
+</div>
+</div></section>
+
+<section class="band softband" id="hooks"><div class="wrap">
+<h2>Memory hooks</h2>
+<div class="hooks">
+<div class="hook l"><big>Log, Sort, Merge</big>LSM in three words. Log the write, sort it in memory, merge files on disk later.</div>
+<div class="hook l"><big>The memtable fills, not the WAL</big>The memtable's size triggers the flush. The WAL is just a receipt roll kept for crashes.</div>
+<div class="hook l"><big>Born sorted</big>SSTables are never sorted on disk. The memtable is sorted at flush; compaction merges sorted files.</div>
+<div class="hook"><big>Bloom says no or maybe</big>Never a false "no". Sometimes a false "maybe". That's why it can safely skip files.</div>
+<div class="hook b"><big>First key bigger than yours</big>The routing rule on every page. Take the pointer just before it.</div>
+<div class="hook b"><big>Middle goes up</big>A full page splits in two and pushes its middle key to the parent. Trees grow at the top.</div>
+<div class="hook b"><big>Log runs ahead of pages</big>The write-ahead rule. Commit flushes the log; pages follow later.</div>
+<div class="hook b"><big>Oldest dirty page holds the log</big>The checkpoint can't pass it, so log space behind it can't be freed.</div>
+<div class="hook"><big>Files vs pages</big>LSM rewrites files (compaction). B-tree rewrites pages (in place). Both are write amplification.</div>
+</div>
+</div></section>
+
+<section class="band" id="cards"><div class="wrap">
+<h2>Flashcards</h2>
+<div class="cardrow">
+<div><div class="flash" id="flash" tabindex="0" role="button" aria-label="Flip card"></div>
+<div class="fbtn"><button id="fprev">Previous</button><button class="pri" id="fflip">Flip</button><button id="fnext">Next</button><button id="fknow">I knew it</button><button id="fshuf">Shuffle</button></div></div>
+<div><p>Say the answer out loud before you flip. Speaking it is the rehearsal for the interview.</p><p class="stat"><b id="fscore">0</b><span>cards marked as known this session</span></p></div>
+</div>
+</div></section>
+
+<section class="band softband" id="check"><div class="wrap">
+<h2>Which engine? Five quick scenarios</h2>
+<p>Pick one, then read why. This is the shape of the interview question.</p>
+<div id="scens"></div>
+</div></section>
+
+<footer class="band"><div class="wrap">Day 1 of interview prep. Source: Kleppmann, Designing Data-Intensive Applications, chapter 3. Session notes by Apurva Raj with Claude.</div></footer>
+
+<script>
+{
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const clean=s=>(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8);
+const num=s=>(s||'').replace(/[^0-9.]/g,'').slice(0,8);
+const cmp=(a,b)=>a[0]<b[0]?-1:a[0]>b[0]?1:0;
+const TICK=['TCS','INFY','HDFC','RELI','ITC','SBIN','LT','WIPRO','AXIS','NTPC','ONGC','BHEL','TITAN','MARUTI','CIPLA','DRREDDY','ZOMATO','PAYTM','COAL','IOC'];
+const rp=()=>String(100+Math.floor(Math.random()*3900));
+const TOMB='†';
+const BITS=16;
+const hs=(s,seed)=>{let h=seed>>>0;for(const c of s)h=Math.imul(h^c.charCodeAt(0),16777619)>>>0;return h};
+const bpos=k=>{const a=hs(k,2166136261)%BITS;let b=hs(k,40503)%BITS;if(b===a)b=(b+7)%BITS;return[a,b]};
+
+/* LSM */
+const CAP=4;let L;
+const lReset=()=>{L={wal:[],mem:new Map(),ssts:[],n:0,puts:0,disk:0,trace:['Empty engine. Put a few keys and watch the memtable fill and flush.'],hl:null,reads:null}};
+const mkSst=e=>{const bits=Array(BITS).fill(0);e.forEach(([k])=>bpos(k).forEach(p=>bits[p]=1));return{id:++L.n,entries:e,bits}};
+const lFlush=()=>{if(!L.mem.size)return['The memtable is empty. Nothing to flush.'];
+ const e=[...L.mem.entries()].sort(cmp);const s=mkSst(e);L.ssts.unshift(s);L.disk+=e.length;L.mem.clear();L.wal=[];L.hl={sst:s.id};
+ return[`Flush: the memtable is written to disk as SSTable #${s.id} (${e.length} keys). It is already sorted, so this is one sequential write. Its Bloom filter is built at the same time.`,'The WAL is cleared: that data is now safe in an immutable file.']};
+const lPut=(k,v)=>{L.hl=null;L.reads=null;const del=v===TOMB;L.wal.push(del?`DEL ${k}`:`PUT ${k}=${v}`);L.mem.set(k,v);L.puts++;
+ const t=[`${del?'Delete':'Put'} ${k}: append to the WAL (sequential), then insert into the sorted memtable. No disk page is read or rewritten.`];
+ if(del)t.push('A delete is just another write: a tombstone. The old value disappears later, at compaction.');
+ if(L.mem.size>=CAP)t.push('The memtable reached 4 keys, so it flushes.',...lFlush());
+ return t};
+const lGet=k=>{const t=[];let files=0;L.hl={get:k,steps:{}};
+ if(L.mem.has(k)){const v=L.mem.get(k);L.hl.mem=k;L.reads=0;return[`Check the memtable: found ${k}${v===TOMB?', but it is a tombstone, so the key is deleted.':' = '+v+'.'} Zero disk reads.`]}
+ t.push(`Check the memtable: no ${k}. Now check SSTables, newest first.`);
+ const ps=bpos(k);
+ for(const s of L.ssts){
+  if(!ps.every(p=>s.bits[p])){L.hl.steps[s.id]='skip';t.push(`SSTable #${s.id}: Bloom bits ${ps[0]} and ${ps[1]} are not both set, so ${k} is definitely not here. Skipped without reading.`);continue}
+  files++;const f=s.entries.find(e=>e[0]===k);
+  if(!f){L.hl.steps[s.id]='fp';t.push(`SSTable #${s.id}: Bloom says "maybe" (both bits set), so the file is read. ${k} is not there: a false positive.`);continue}
+  L.hl.steps[s.id]='hit';L.reads=files;
+  t.push(f[1]===TOMB?`SSTable #${s.id}: found a tombstone. Stop: ${k} is deleted, and older files are never checked.`:`SSTable #${s.id}: Bloom says maybe, file read, found ${k} = ${f[1]}. Stop: the newest version wins, older files are ignored.`);
+  return t}
+ L.reads=files;t.push(`Not found anywhere. ${files} file read(s) in total.`);return t};
+const lCompact=()=>{if(L.ssts.length<2)return['Compaction needs at least two SSTables.'];
+ const m=new Map();let before=0;[...L.ssts].reverse().forEach(s=>s.entries.forEach(([k,v])=>{m.set(k,v);before++}));
+ let tomb=0;const e=[...m.entries()].filter(([,v])=>v===TOMB?(tomb++,false):true).sort(cmp);const old=L.ssts.length;
+ L.ssts=[mkSst(e)];L.disk+=e.length;L.hl={sst:L.ssts[0].id};L.reads=null;
+ return[`Compaction: merged ${old} SSTables (${before} entries) like a merge sort into one new file of ${e.length} keys, with a new Bloom filter. The old files are deleted.`,`Dropped ${before-m.size} overwritten old version(s) and ${tomb} tombstone(s). Tombstones can go because this merge included the oldest file.`,`Those ${e.length} entries were already on disk and got written again. That repeated rewriting is write amplification.`]};
+const lSample=()=>{lReset();[['TCS','3950'],['INFY','1520'],['HDFC','1710'],['RELI','2890'],['ITC','455'],['TCS','3985'],['SBIN','812'],['LT','3600'],['WIPRO','298']].forEach(([k,v])=>lPut(k,v));lPut('ITC',TOMB);L.hl=null;
+ L.trace=['Sample state: two SSTables on disk, two entries in the memtable.','Try Get TCS (two versions exist: which wins?), Get ITC (deleted), Get ZOMATO (watch the Bloom filters), then Compact.']};
+const row=(k,v,h)=>`<li class="${h?'hit':''} ${v===TOMB?'tomb':''}"><span>${esc(k)}</span><span>${v===TOMB?'tombstone':esc(v)}</span></li>`;
+const lRender=()=>{
+ $('#wal').innerHTML=L.wal.length?L.wal.map(w=>`<li>${esc(w)}</li>`).join(''):'<li class="empty">Empty (cleared at each flush)</li>';
+ const me=[...L.mem.entries()].sort(cmp);
+ $('#mem').innerHTML=me.length?me.map(([k,v])=>row(k,v,L.hl&&L.hl.mem===k)).join(''):'<li class="empty">Empty</li>';
+ $('#memcap').textContent=`${L.mem.size} of ${CAP}`;
+ const g=L.hl&&L.hl.get,ps=g?bpos(g):[];
+ $('#ssts').innerHTML=L.ssts.length?L.ssts.map(s=>{const st=(L.hl&&L.hl.steps&&L.hl.steps[s.id])||'';
+  const lab={skip:'skipped by Bloom',fp:'false positive',hit:'found here'}[st]||'';
+  return `<div class="sst ${st} ${L.hl&&L.hl.sst===s.id?'new':''}"><div class="sh"><b>SSTable #${s.id}</b><span>${lab}</span></div><div class="bloom" aria-label="Bloom filter bits">${s.bits.map((b,i)=>`<i class="${b?'on':''} ${ps.includes(i)?'q':''}"></i>`).join('')}</div><ul class="kv">${s.entries.map(([k,v])=>row(k,v,st==='hit'&&g===k)).join('')}</ul></div>`}).join(''):'<p class="empty">No files on disk yet.</p>';
+ $('#ltrace').innerHTML=L.trace.map(t=>`<li>${esc(t)}</li>`).join('');
+ $('#lr').textContent=L.reads===null?'—':L.reads;
+ $('#nf').textContent=L.ssts.length;
+ $('#wa').textContent=L.puts?(L.disk/L.puts).toFixed(2):'—';
+ $('#warn').hidden=L.ssts.length<3};
+const lKey=()=>clean($('#lk').value);
+const lDo=f=>{L.trace=f();lRender()};
+$('#lput').onclick=()=>{const k=lKey();if(!k)return lDo(()=>['Type a key first.']);const v=num($('#lv').value)||rp();lDo(()=>lPut(k,v));$('#lv').value=rp()};
+$('#lget').onclick=()=>{const k=lKey();lDo(()=>k?lGet(k):['Type a key first.'])};
+$('#ldel').onclick=()=>{const k=lKey();lDo(()=>k?lPut(k,TOMB):['Type a key first.'])};
+$('#lflush').onclick=()=>{L.reads=null;lDo(lFlush)};
+$('#lcomp').onclick=()=>lDo(lCompact);
+$('#lsamp').onclick=()=>{lSample();lRender()};
+$('#lreset').onclick=()=>{lReset();lRender()};
+['#lk','#lv'].forEach(s=>$(s).addEventListener('keydown',e=>{if(e.key==='Enter')$('#lput').click()}));
+
+/* Bloom toy: rule 1 = letter sum mod 16, rule 2 = first + last mod 16 */
+let F;
+const fClean=s=>(s||'').toUpperCase().replace(/[^A-Z]/g,'').slice(0,10);
+const fh=k=>{const v=[...k].map(c=>c.charCodeAt(0)-64);const s=v.reduce((a,b)=>a+b,0);const f=v[0]+v[v.length-1];return{v,s,f,a:s%16,b:f%16}};
+const fReset=()=>{F={bits:Array(16).fill(0),keys:[],q:[],miss:[]};['TCS','INFY','HDFC'].forEach(k=>{const r=fh(k);F.bits[r.a]=1;F.bits[r.b]=1;F.keys.push(k)})};
+const fMath=(k,r)=>`${k}: ${r.v.join(' + ')} = ${r.s} → ${r.s} mod 16 = <b>${r.a}</b><br>${k}: first + last = ${r.v[0]} + ${r.v[r.v.length-1]} = ${r.f} → mod 16 = <b>${r.b}</b>`;
+const fRenderBits=()=>{$('#fbits').innerHTML=F.bits.map((b,i)=>`<div class="bit ${b?'on':''} ${F.q.includes(i)?'q':''} ${F.miss.includes(i)?'miss':''}">${b}</div>`).join('');
+ $('#fidx').innerHTML=F.bits.map((_,i)=>`<span>${i}</span>`).join('');$('#fkeys').textContent=F.keys.join(', ');$('#fcnt').textContent=F.bits.filter(Boolean).length};
+const fGet=()=>{const k=fClean($('#fk').value);if(!k){$('#fout').textContent='Enter a key using letters A to Z.';return null}return k};
+$('#fadd').onclick=()=>{const k=fGet();if(!k)return;const r=fh(k);F.bits[r.a]=1;F.bits[r.b]=1;if(!F.keys.includes(k))F.keys.push(k);F.q=[r.a,r.b];F.miss=[];
+ $('#fmath').innerHTML=fMath(esc(k),r);$('#fout').innerHTML=`Added <b>${esc(k)}</b>: ticked boxes ${r.a} and ${r.b}. Boxes are never unticked.`;fRenderBits()};
+$('#fchk').onclick=()=>{const k=fGet();if(!k)return;const r=fh(k);F.q=[r.a,r.b];F.miss=F.q.filter(i=>!F.bits[i]);$('#fmath').innerHTML=fMath(esc(k),r);const e=esc(k);
+ $('#fout').innerHTML=F.miss.length?`Box ${F.miss.join(' and ')} is empty, so <b>${e} is definitely not in this file</b>. The engine skips the file without reading it.`:F.keys.includes(k)?`Boxes ${r.a} and ${r.b} are both ticked: <b>"maybe"</b>. The engine reads the file and finds ${e}. Correct.`:`Boxes ${r.a} and ${r.b} are both ticked, by other keys: <b>"maybe"</b>. The engine reads the file and ${e} isn't there. A <b>false positive</b>: one wasted read, nothing wrong.`;fRenderBits()};
+$('#frst').onclick=()=>{fReset();$('#fmath').innerHTML='';$('#fout').textContent='File holds TCS, INFY and HDFC. Check a key to see the answer.';fRenderBits()};
+document.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{$('#fk').value=b.dataset.k;$('#fchk').click()});
+
+/* B-tree stepper */
+const N=(k,c,cls,mark)=>({k,c:c||[],cls:cls||'',mark:mark||{}});
+const S=[
+{t:'Start',r:N([],[],'made'),n:'One empty page. It is the root and also a leaf. A page here holds at most 3 keys.'},
+{t:'Insert HDFC',r:N(['HDFC'],[],'made',{HDFC:'add'}),n:'Log to the WAL, then put HDFC in the only page and rewrite it. 1 page written.'},
+{t:'Insert ITC',r:N(['HDFC','ITC'],[],'made',{ITC:'add'}),n:'ITC sorts after HDFC, so it goes second. The page is rewritten in place. 1 page written.'},
+{t:'Insert TCS',r:N(['HDFC','ITC','TCS'],[],'made',{TCS:'add'}),n:'TCS goes last. The page now holds 3 keys: it is full.'},
+{t:'Insert INFY: the page overflows',r:N(['HDFC','INFY','ITC','TCS'],[],'over',{INFY:'add'}),n:'INFY sorts between HDFC and ITC (second letters: N before T). That makes 4 keys, one too many. The page must split.'},
+{t:'Insert INFY: split',r:N(['ITC'],[N(['HDFC','INFY'],[],'made'),N(['TCS'],[],'made')],'made',{ITC:'add'}),n:'Cut the page in two. HDFC and INFY stay left. TCS goes to a new page. The middle key, ITC, moves up. There was no parent, so ITC becomes a new root. The tree grew one level taller, at the top. 3 pages written.'},
+{t:'Insert SBIN',r:N(['ITC'],[N(['HDFC','INFY']),N(['SBIN','TCS'],[],'made',{SBIN:'add'})],'path'),n:'Root: SBIN comes after ITC, so follow the right pointer. The right leaf has room: SBIN goes before TCS. 2 pages read, 1 written.'},
+{t:'Insert LT',r:N(['ITC'],[N(['HDFC','INFY']),N(['LT','SBIN','TCS'],[],'made',{LT:'add'})],'path'),n:'Root: LT comes after ITC, so go right. LT sorts first in that leaf. The leaf is now full.'},
+{t:'Insert AXIS',r:N(['ITC'],[N(['AXIS','HDFC','INFY'],[],'made',{AXIS:'add'}),N(['LT','SBIN','TCS'])],'path'),n:'Root: AXIS comes before ITC, so go left. AXIS sorts first. The left leaf is now full too.'},
+{t:'Insert WIPRO: the leaf overflows',r:N(['ITC'],[N(['AXIS','HDFC','INFY']),N(['LT','SBIN','TCS','WIPRO'],[],'over',{WIPRO:'add'})],'path'),n:'Root: WIPRO comes after ITC, so go right. WIPRO goes last, giving 4 keys. Too many: split.'},
+{t:'Insert WIPRO: split',r:N(['ITC','TCS'],[N(['AXIS','HDFC','INFY']),N(['LT','SBIN'],[],'made'),N(['WIPRO'],[],'made')],'made',{TCS:'add'}),n:'LT and SBIN stay. WIPRO moves to a new page. The middle key, TCS, moves up into the root, which had room. The root now has 2 signposts and 3 pointers. 3 pages written. No new level this time.'},
+{t:'Fetch SBIN',r:N(['ITC','TCS'],[N(['AXIS','HDFC','INFY']),N(['LT','SBIN'],[],'path',{SBIN:'hit'}),N(['WIPRO'])],'path'),n:'Root: SBIN is after ITC and before TCS, so follow the middle pointer. Middle leaf: SBIN is there. Found after 2 page reads.'},
+{t:'Fetch BHEL',r:N(['ITC','TCS'],[N(['AXIS','HDFC','INFY'],[],'path'),N(['LT','SBIN']),N(['WIPRO'])],'path'),n:'Root: BHEL is before ITC, so go left. Left leaf: AXIS, HDFC, INFY. BHEL would sit between AXIS and HDFC, but it is not there. Not found, after 2 page reads. A miss costs the same as a hit.'}];
+let si=0;
+const rgl=(p,j)=>{const k=p.k;if(j===0)return'before '+k[0];if(j===k.length)return'after '+k[k.length-1];return k[j-1]+' to '+k[j]};
+const sn=(n,p,j)=>`<div class="bn">${p?`<div class="rg">${rgl(p,j)}</div>`:''}<div class="pg ${n.cls}">${n.k.length?n.k.map(x=>`<span class="${n.mark[x]||''}">${x}</span>`).join(''):'<em class="empty">empty</em>'}</div>${n.c.length?`<div class="kids">${n.c.map((c,jj)=>sn(c,n,jj)).join('')}</div>`:''}</div>`;
+const sShow=()=>{const s=S[si];$('#sttl').textContent=s.t;$('#stree').innerHTML=sn(s.r);$('#snote').textContent=s.n;$('#sstp').textContent=`Step ${si+1} of ${S.length}`};
+$('#snext').onclick=()=>{if(si<S.length-1){si++;sShow()}};
+$('#sprev').onclick=()=>{if(si>0){si--;sShow()}};
+$('#srst').onclick=()=>{si=0;sShow()};
+
+/* B-tree lab */
+const MAX=3;let B;
+const bReset=()=>{B={root:{id:1,keys:[],vals:[],kids:[]},nid:1,touched:new Set(),split:new Set(),path:[],found:null,wal:[],pages:0,puts:0,lastW:null,trace:['Empty tree: one root page with no keys. Put keys and watch pages fill and split.']}};
+const lb=(a,k)=>{let i=0;while(i<a.length&&a[i]<k)i++;return i};
+const bIns=(n,k,v)=>{B.path.push(n.id);const i=lb(n.keys,k);
+ if(n.keys[i]===k){n.vals[i]=v;B.touched.add(n.id);return null}
+ if(!n.kids.length){n.keys.splice(i,0,k);n.vals.splice(i,0,v)}
+ else{const r=bIns(n.kids[i],k,v);if(!r)return null;n.keys.splice(i,0,r.k);n.vals.splice(i,0,r.v);n.kids.splice(i+1,0,r.node)}
+ if(n.keys.length<=MAX){B.touched.add(n.id);return null}
+ const m=Math.floor(n.keys.length/2);
+ const right={id:++B.nid,keys:n.keys.slice(m+1),vals:n.vals.slice(m+1),kids:n.kids.slice(m+1)};
+ const up={k:n.keys[m],v:n.vals[m],node:right};
+ n.keys=n.keys.slice(0,m);n.vals=n.vals.slice(0,m);n.kids=n.kids.slice(0,m+1);
+ [n.id,right.id].forEach(x=>{B.touched.add(x);B.split.add(x)});return up};
+const bFind=k=>{let n=B.root;const p=[];while(n){p.push(n.id);const i=lb(n.keys,k);if(n.keys[i]===k)return{p,v:n.vals[i]};if(!n.kids.length)break;n=n.kids[i]}return{p,v:null}};
+const depth=()=>{let d=1,n=B.root;while(n.kids.length){d++;n=n.kids[0]}return d};
+const bPut=(k,v)=>{const exists=bFind(k).v!==null;B.touched=new Set();B.split=new Set();B.path=[];B.found=null;
+ const r=bIns(B.root,k,v);let grew=false;
+ if(r){B.root={id:++B.nid,keys:[r.k],vals:[r.v],kids:[B.root,r.node]};B.touched.add(B.root.id);B.split.add(B.root.id);grew=true}
+ const w=B.touched.size;B.pages+=w;B.puts++;B.lastW=w;
+ B.wal.push(`PUT ${k}=${v}: pages ${[...B.touched].map(x=>'#'+x).join(', ')}`);if(B.wal.length>5)B.wal.shift();
+ const t=[`Put ${k}: walk from the root to the leaf that owns ${k} (${B.path.map(x=>'#'+x).join(' → ')}). Log the change to the WAL first.`];
+ if(exists)t.push(`${k} already exists, so its page is overwritten in place. 1 page written. The key never moves.`);
+ else if(!B.split.size)t.push('The leaf had room. The key goes in, in sorted order, and the whole page is rewritten in place: 1 page for a tiny change.');
+ else t.push(`A page overflowed (more than ${MAX} keys). It split into two pages and the middle key moved up to the parent.`,grew?'The root itself split, so the tree grew one level taller. B-trees grow at the top, which keeps every leaf at the same depth.':'The parent had room, so the split stopped there.',`${w} pages written by one Put. If the machine crashed halfway, the WAL lets the database finish the split.`);
+ return t};
+const bGet=k=>{B.touched=new Set();B.split=new Set();const r=bFind(k);B.path=r.p;B.found=r.v!==null?k:null;
+ return[`Get ${k}: start at the root and follow the key range that contains ${k}, one page per level (${r.p.map(x=>'#'+x).join(' → ')}).`,r.v!==null?`Found ${k} = ${r.v} after ${r.p.length} page read(s).`:`Reached a leaf without ${k}: it is not in the tree. Still ${r.p.length} page read(s). B-tree reads are predictable.`]};
+const bSample=()=>{bReset();['TCS','INFY','HDFC','RELI','ITC','SBIN','LT','WIPRO','NTPC','ONGC','BHEL'].forEach(k=>bPut(k,rp()));B.touched=new Set();B.split=new Set();B.path=[];
+ B.trace=['Sample state: 11 keys, depth '+depth()+'. This is the tree we traced: Put G to see the split from the notes below, then try C, D and E to make the root split.']};
+const rn=n=>{const c=[B.path.includes(n.id)?'p':'',B.touched.has(n.id)?'w':'',B.split.has(n.id)?'split':''].join(' ');
+ return `<div class="bn"><div class="pg ${c}"><small>#${n.id}</small>${n.keys.length?n.keys.map((k,i)=>`<span class="${B.found===k?'hit':''}" title="${esc(k)} = ${esc(n.vals[i])}">${esc(k)}</span>`).join(''):'<em class="empty">empty</em>'}</div>${n.kids.length?`<div class="kids">${n.kids.map(rn).join('')}</div>`:''}</div>`};
+const bRender=()=>{$('#tree').innerHTML=rn(B.root);$('#btrace').innerHTML=B.trace.map(t=>`<li>${esc(t)}</li>`).join('');
+ $('#bwal').innerHTML=B.wal.length?B.wal.map(w=>`<li>${esc(w)}</li>`).join(''):'<li class="empty">Empty</li>';
+ $('#bd').textContent=depth();$('#bw').textContent=B.lastW===null?'—':B.lastW;$('#bavg').textContent=B.puts?(B.pages/B.puts).toFixed(2):'—'};
+const bDo=f=>{B.trace=f();bRender()};
+const bKey=()=>clean($('#bk').value);
+$('#bput').onclick=()=>{const k=bKey();if(!k)return bDo(()=>['Type a key first.']);const v=num($('#bv').value)||rp();bDo(()=>bPut(k,v));$('#bv').value=rp()};
+$('#bget').onclick=()=>{const k=bKey();bDo(()=>k?bGet(k):['Type a key first.'])};
+$('#brand').onclick=()=>{const ks=[];for(let i=0;i<5;i++)ks.push(TICK[Math.floor(Math.random()*TICK.length)]+(Math.random()<.5?'':String(Math.floor(Math.random()*9))));
+ let w=0,sp=0;ks.forEach(k=>{bPut(k,rp());w+=B.lastW;if(B.split.size)sp++});
+ bDo(()=>[`Put 5 random keys: ${ks.join(', ')}.`,`${w} pages written in total, ${sp} of the Puts caused a split. Highlights show only the last Put.`])};
+$('#bsamp').onclick=()=>{bSample();bRender()};
+$('#breset').onclick=()=>{bReset();bRender()};
+['#bk','#bv'].forEach(s=>$(s).addEventListener('keydown',e=>{if(e.key==='Enter')$('#bput').click()}));
+
+/* Flashcards */
+const CARDS=[
+['What are the steps of an LSM write?','Append to the WAL, insert into the sorted in-memory memtable. When the memtable is full, flush it to disk as an immutable, sorted SSTable and drop that WAL.'],
+['What triggers a flush: the WAL or the memtable filling up?','The memtable. The SSTable is written from the memtable because it is already sorted.'],
+['Why keep a memtable if the WAL has the same data?','The WAL is unsorted (arrival order) and only for crash recovery. The memtable is sorted, so recent reads are fast and the flush writes a sorted file in one pass.'],
+['How does an SSTable stay sorted?','It is born sorted: the memtable is sorted at flush, and compaction merges already-sorted files. Order is byte order.'],
+['Why are LSM writes fast?','They are sequential and batched. Nothing on disk is read or overwritten in place.'],
+['What is compaction?','A background merge of some SSTables, like merge sort. Keeps the newest value per key, drops overwritten values and tombstones, deletes the old files.'],
+['What does a Bloom filter tell you?','"Definitely not here" or "maybe here". No false negatives, some false positives. Lets reads skip files.'],
+['How big is each SSTable\'s Bloom filter?','Sized per file: key count × bits per key. About 10 bits per key gives about 1% false positives. Built at flush or compaction, stored in the file, loaded into memory.'],
+['What is a tombstone?','A delete marker, written like any other value. The data is removed at compaction.'],
+['Why is the LSM-tree called a tree?','From the 1996 O\'Neil paper, where it was a series of trees merged downwards. Today it is a memtable plus levels of sorted files.'],
+['What is a B-tree page?','A fixed-size block (about 4–16 KB) of sorted keys and child pointers. n keys means n + 1 pointers.'],
+['How do you decide which pointer to follow?','Compare left to right; at the first key bigger than yours, take the pointer just before it. None bigger: take the last. Equal: found.'],
+['How does a B-tree handle a write?','Find the leaf, log to the WAL, overwrite the page in place. If full, split: middle key goes up to the parent.'],
+['When does a B-tree grow taller?','Only when the root splits. A new root is created above, so every leaf stays at the same depth.'],
+['What does a fetch cost in a B-tree?','One page read per level, for a hit or a miss.'],
+['Why does a B-tree need a WAL?','One insert can touch several pages, pages can be torn, and dirty pages sit in memory. The log makes changes durable before pages are written.'],
+['What is the write-ahead rule?','A dirty page may reach disk only after the log records for its changes are on disk.'],
+['When is B-tree log space freed?','After a checkpoint, once the oldest dirty page has been flushed. Not at commit.'],
+['How does crash recovery work?','From the last checkpoint: redo log records newer than each page\'s LSN, then undo uncommitted transactions (ARIES).'],
+['What is write amplification?','One logical write causing many physical writes. LSM: compaction rewrites. B-tree: WAL plus whole-page writes and splits.'],
+['Rule of thumb: which engine?','LSM for write-heavy ingest. B-tree for read-heavy, transactional work with predictable latency. Then benchmark your workload.']];
+let order=CARDS.map((_,i)=>i),ci=0,back=false;const known=new Set();
+const cRender=()=>{const c=CARDS[order[ci]];const f=$('#flash');f.className='flash'+(back?' back':'');
+ f.innerHTML=`<small>Card ${ci+1} of ${CARDS.length} · ${back?'Answer':'Question'}${known.has(order[ci])?' · known':''}</small>${esc(back?c[1]:c[0])}`;$('#fscore').textContent=`${known.size} / ${CARDS.length}`};
+const flip=()=>{back=!back;cRender()};
+$('#flash').onclick=flip;$('#flash').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();flip()}};
+$('#fflip').onclick=flip;
+$('#fnext').onclick=()=>{ci=(ci+1)%CARDS.length;back=false;cRender()};
+$('#fprev').onclick=()=>{ci=(ci-1+CARDS.length)%CARDS.length;back=false;cRender()};
+$('#fknow').onclick=()=>{known.add(order[ci]);ci=(ci+1)%CARDS.length;back=false;cRender()};
+$('#fshuf').onclick=()=>{for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]]}ci=0;back=false;cRender()};
+
+/* Scenarios */
+const OPTS=['LSM-tree','B-tree','Column store'];
+const SC=[
+['Ingest one-minute price ticks for 2,000 stocks all day. Queries come later, mostly by stock and time range.',0,'Write-heavy, append-mostly, sorted by key. LSM turns the flood of small writes into sequential flushes. Key on (symbol, timestamp) so range scans stay sorted. Watch compaction keeping up at market open.'],
+['A brokerage ledger. Money moves between accounts in transactions, with many point reads and strict consistency.',1,'Transactional OLTP. Each key lives in one place, so locking and isolation are simpler, and reads are predictable.'],
+['A user-profile store. 95% reads by primary key, rare updates, a strict p99 latency target.',1,'Read-heavy with a latency target. B-tree reads cost the same every time. An LSM store can do this too with Bloom filters, but compaction can cause latency spikes.'],
+['An event log for product analytics. Append-only, write throughput is the bottleneck, and SSD wear matters.',0,'LSM. Sequential writes, good compression, and often lower write amplification than a B-tree. Pick leveled or size-tiered compaction based on the read pattern.'],
+['FidelFolio: 30 years of daily prices and fundamentals, nightly bulk loads, screening queries across all stocks on a few metrics.',2,'Screens scan a few columns over many rows: an analytical workload. A column store fits best. At this data size MySQL (B-tree) with good composite indexes also works, which is a fair thing to say in an interview.']];
+$('#scens').innerHTML=SC.map((s,i)=>`<div class="scen"><b>${i+1}.</b> ${esc(s[0])}<div class="opts">${OPTS.map((o,j)=>`<button data-s="${i}" data-o="${j}">${o}</button>`).join('')}</div><div id="sfb${i}"></div></div>`).join('');
+$('#scens').onclick=e=>{const b=e.target.closest('button[data-s]');if(!b)return;const i=+b.dataset.s,o=+b.dataset.o,s=SC[i];
+ b.parentNode.querySelectorAll('button').forEach(x=>x.className=+x.dataset.o===s[1]?'ok':(x===b?'no':''));
+ $('#sfb'+i).innerHTML=`<b>${o===s[1]?'Right.':'Not quite. Best fit: '+OPTS[s[1]]+'.'}</b> ${esc(s[2])}`};
+
+lSample();lRender();fReset();$('#fchk').click();sShow();bSample();bRender();cRender();
+}
+</script>
+</body>
+</html>

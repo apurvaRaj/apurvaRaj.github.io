@@ -1,0 +1,51 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+const jobs = (await getCollection('experience')).sort((a, b) => b.data.start.localeCompare(a.data.start));
+const projects = Object.fromEntries((await getCollection('projects')).map((p) => [p.id, p.data.short]));
+const fmt = (s?: string) => (s ? new Date(`${s}-01T00:00:00Z`).toLocaleDateString('en-GB', { month: 'short', year: 'numeric', timeZone: 'UTC' }) : 'Present');
+---
+<Base title="Experience" description="Apurva Raj's experience: CTO at FidelFolio Investments, Product Technical Lead at ChainThat (Berkshire Hathaway), CARE India, Silvermine and HCL." crumbs={[{ name: 'Experience', href: '/experience/' }]}>
+  <header class="page-head">
+    <div class="wrap">
+      <h1>Experience</h1>
+      <p class="lede">13+ years across fintech, insurance, public health and consumer technology.</p>
+      <p class="edu muted">Education: Executive MTech in Blockchain & Big Data, IIT Patna (2023–2025) · PG Diploma in Software Development (Blockchain), IIIT Bangalore (2019–2020) · BE in Electronics & Communication Engineering, JNNCE (2008–2012).</p>
+    </div>
+  </header>
+  <ol class="wrap jobs">
+    {jobs.map((j) => (
+      <li class:list={[{ current: !j.data.end }]}>
+        <div class="when">
+          <p class="num">{fmt(j.data.start)} – {fmt(j.data.end)}</p>
+          <p class="muted">{j.data.location}</p>
+          {!j.data.end && <p class="now">Current role</p>}
+        </div>
+        <div>
+          <h2>{j.data.company}</h2>
+          <p class="title">{j.data.title}</p>
+          <p class="sum muted">{j.data.summary}</p>
+          <ul class="hl">{j.data.highlights.map((h) => <li>{h}</li>)}</ul>
+          {j.data.tech.length > 0 && <ul class="chips">{j.data.tech.map((t) => <li>{t}</li>)}</ul>}
+          {j.data.projects.length > 0 && (
+            <p class="cases">Case studies: {j.data.projects.map((p, i) => <>{i > 0 && ', '}<a href={`/projects/${p}/`}>{projects[p]}</a></>)}</p>
+          )}
+        </div>
+      </li>
+    ))}
+  </ol>
+</Base>
+<style>
+  .edu { margin-top: 22px; max-width: 80ch; font-size: var(--s-1); }
+  .jobs { list-style: none; padding-block: 24px 120px; }
+  .jobs > li { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 16px 56px; padding: 48px 0; border-bottom: 1px solid var(--line); }
+  .when p:first-child { font-weight: 600; }
+  .now { color: var(--amber); font-weight: 600; font-size: var(--s-1); margin-top: 8px; }
+  h2 { font-size: var(--s3); }
+  .title { font-weight: 600; margin-top: 6px; }
+  .sum { margin-top: 6px; }
+  .hl { margin: 22px 0; padding-left: 1.1em; display: grid; gap: 10px; max-width: 76ch; color: #D3D8E3; }
+  .cases { margin-top: 18px; font-size: var(--s-1); color: var(--slate); }
+  .current h2 { color: #fff; }
+  @media (max-width: 760px) { .jobs > li { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,381 @@
+---
+import Base from '../layouts/Base.astro';
+import ArchDiagram from '../components/ArchDiagram.astro';
+import { getCollection } from 'astro:content';
+import { SITE } from '../config/site';
+import { JOURNEY, DOMAINS } from '../config/home';
+
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+const jobs = (await getCollection('experience')).sort((a, b) => b.data.start.localeCompare(a.data.start));
+const lessons = (await getCollection('learning')).sort((a, b) => b.data.day - a.data.day);
+const articles = (await getCollection('insights', (e) => !e.data.draft)).sort((a, b) => +b.data.date - +a.data.date).slice(0, 3);
+const projectTitle = Object.fromEntries(projects.map((p) => [p.id, p.data.short]));
+const yr = (s?: string) => (s ? s.slice(0, 4) : 'now');
+
+const profilePage = { '@type': 'ProfilePage', mainEntity: { '@id': new URL('/#person', Astro.site).href }, name: SITE.title, url: new URL('/', Astro.site).href };
+const AI_STEPS = [
+  { id: 'task', label: 'Task', title: 'A task arrives', text: 'A request with a goal, for example “prepare this month’s performance report”. The workflow it runs is a chain of steps that has worked before.' },
+  { id: 'llm', label: 'LLM', title: 'An LLM step reasons', text: 'A language model plans or drafts. It sees only the prompts, knowledge and data this step is given, nothing else.' },
+  { id: 'tool', label: 'Tool', title: 'A tool step executes', text: 'Python runs, a notebook executes or the database is queried, read-only. Results are real numbers, not the model’s guess at them.' },
+  { id: 'human', label: 'Human', title: 'A person approves', text: 'At the points that matter, a person approves, edits or redirects before anything reaches a client.' },
+  { id: 'run', label: 'Run log', title: 'Every run is recorded', text: 'Inputs, outputs and the steps that produced them are kept. A later run can build on an earlier one, and good workflows are reused.' },
+];
+---
+<Base jsonld={[profilePage]} bodyClass="home">
+  <canvas id="universe" aria-hidden="true"></canvas>
+  <div class="cluster-labels" aria-hidden="true">
+    {DOMAINS.map((d, i) => <button tabindex="-1" data-label={i}>{d.name}</button>)}
+  </div>
+
+  <!-- 0 · Hero -->
+  <section class="hero" data-scene="galaxy" aria-labelledby="hero-title">
+    <div class="wrap hero-inner">
+      <p class="hero-role" data-reveal>{SITE.role}</p>
+      <h1 id="hero-title" class="display hero-name"><span data-line>Apurva</span><span data-line>Raj</span></h1>
+      <ul class="hero-tags" data-reveal>{SITE.positioning.map((p) => <li>{p}</li>)}</ul>
+      <p class="hero-headline" data-reveal>{SITE.headline}</p>
+      <div class="hero-foot" data-reveal>
+        <p class="hero-years"><b class="num">13+</b> years of engineering experience</p>
+        <div class="hero-cta">
+          <a class="btn primary" href="#intro">Explore my universe</a>
+          <a class="btn" href="#work">Discover my work</a>
+        </div>
+      </div>
+    </div>
+    <a class="scroll-cue" href="#intro" aria-label="Scroll to the introduction"><span></span></a>
+  </section>
+
+  <!-- 1 · Intro -->
+  <section id="intro" class="section intro" data-scene="core" aria-labelledby="intro-title">
+    <div class="wrap">
+      <h2 id="intro-title" class="intro-text">{SITE.supporting}</h2>
+      <p class="intro-sub muted">Today I lead technology at FidelFolio Investments, a SEBI-registered investment adviser, where I build the data platform, backtesting engines and AI systems behind a rules-based investing platform. Before that: enterprise blockchain for Berkshire Hathaway, public-health apps for the Government of Bihar, and backend systems at scale.</p>
+      <dl class="facts">
+        <div><dt class="num">30+ yrs</dt><dd>of Indian market history in the data platform I architected</dd></div>
+        <div><dt class="num">130+</dt><dd>countries on the blockchain insurance platform built for Berkshire Hathaway</dd></div>
+        <div><dt class="num">200,000+</dt><dd>frontline health workers reached by the Bihar programme I ran systems for</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- 2 · Journey -->
+  <section id="journey" class="journey" data-scene="helix" aria-labelledby="journey-title">
+    <div class="journey-pin">
+      <div class="wrap journey-head">
+        <h2 id="journey-title">My professional journey</h2>
+        <p class="muted">Seven stages, from enterprise software to leading technology. Scroll to move through them.</p>
+        <div class="journey-progress" aria-hidden="true"><span></span></div>
+      </div>
+      <ol class="journey-track">
+        {JOURNEY.map((j, i) => (
+          <li class="stage">
+            <p class="stage-n num">{String(i + 1).padStart(2, '0')}</p>
+            <h3>{j.stage}</h3>
+            <p class="stage-meta">{j.period} · {j.where}</p>
+            <p class="stage-text">{j.text}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- 3 · Technical universe -->
+  <section id="skills" class="section skills" data-scene="clusters" aria-labelledby="skills-title">
+    <div class="wrap skills-grid">
+      <div>
+        <h2 id="skills-title">Technical universe</h2>
+        <p class="muted skills-intro">Eight domains I work across. Choose one to see the tools and where I have used them.</p>
+        <ul class="domain-list" role="list">
+          {DOMAINS.map((d, i) => (
+            <li><button class="domain" data-domain={i} aria-controls="domain-panel" aria-pressed={i === 0 ? 'true' : 'false'}>{d.name}</button></li>
+          ))}
+        </ul>
+      <div class="domain-panel" id="domain-panel" aria-live="polite">
+        {DOMAINS.map((d, i) => (
+          <article class="domain-card" data-card={i} hidden={i !== 0}>
+            <h3>{d.name}</h3>
+            <ul class="chips">{d.tools.map((t) => <li>{t}</li>)}</ul>
+            <p>{d.used}</p>
+            <p class="domain-links">{d.projects.map((p) => <a href={`/projects/${p}/`}>{projectTitle[p]}</a>)}</p>
+          </article>
+        ))}
+      </div>
+      </div>
+      <div class="skills-space" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- 4 · Projects -->
+  <section id="work" class="work" data-scene="plane" aria-labelledby="work-title">
+    <div class="wrap section-head work-head">
+      <h2 id="work-title">Selected work</h2>
+      <p>Seven systems, each with its own problem. Every case study covers the challenge, the architecture, my role and the decisions behind it.</p>
+    </div>
+    {projects.map((p) => (
+      <article class="project" data-project>
+        <div class="wrap project-grid">
+          <div class="project-copy">
+            <p class="project-domain">{p.data.domain} · {p.data.period}</p>
+            <h3 class="project-title">{p.data.title}</h3>
+            <p class="project-summary">{p.data.summary}</p>
+            {p.data.facts.length > 0 && (
+              <dl class="project-facts">{p.data.facts.map((f) => <div><dt class="num">{f.value}</dt><dd>{f.label}</dd></div>)}</dl>
+            )}
+            <ul class="chips">{p.data.stack.slice(0, 6).map((s) => <li>{s}</li>)}</ul>
+            <a class="btn" href={`/projects/${p.id}/`}>Read the case study<span class="sr-only">: {p.data.title}</span></a>
+          </div>
+          <div class="project-visual">
+            {p.data.diagram && <ArchDiagram caption={p.data.diagram.caption} nodes={p.data.diagram.nodes} edges={p.data.diagram.edges} compact id={`home-${p.id}`} />}
+          </div>
+        </div>
+      </article>
+    ))}
+  </section>
+
+  <!-- 5 · AI & agentic systems -->
+  <section id="ai" class="section ai" data-scene="plane" aria-labelledby="ai-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="ai-title">How I build agentic systems</h2>
+        <p>Agentic AI is useful when every step is controlled, visible and reviewable. This is the pattern behind the workflow platform I designed at FidelFolio. Step through it.</p>
+      </div>
+      <div class="ai-flow" data-ai>
+        <ol class="ai-steps">
+          {AI_STEPS.map((s, i) => (
+            <li><button class="ai-step" data-step={i} aria-pressed={i === 0 ? 'true' : 'false'} aria-controls="ai-detail"><span class="num">{i + 1}</span>{s.label}</button></li>
+          ))}
+        </ol>
+        <div class="ai-detail" id="ai-detail" aria-live="polite">
+          {AI_STEPS.map((s, i) => (
+            <div data-detail={i} hidden={i !== 0}><h3>{s.title}</h3><p>{s.text}</p></div>
+          ))}
+          <button class="btn ai-next" data-next>Next step</button>
+        </div>
+      </div>
+      <ul class="ai-points">
+        <li><b>Agentic architectures</b> with LLM, tool and human steps</li>
+        <li><b>Multi-agent orchestration</b> through reusable, logged workflows</li>
+        <li><b>MCP integration</b> giving assistants controlled access to compute</li>
+        <li><b>Decision support</b> on financial data pipelines</li>
+      </ul>
+      <p class="ai-more"><a href="/projects/ai-agents-automation/">Read the AI agents and automation case study</a></p>
+    </div>
+  </section>
+
+  <!-- 6 · Experience -->
+  <section id="experience" class="section exp" data-scene="career" aria-labelledby="exp-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="exp-title">Experience</h2>
+        <p>Five organisations over 13 years. The bars of light are those roles, drawn to scale on a timeline.</p>
+      </div>
+      <ol class="exp-list">
+        {jobs.map((j) => (
+          <li>
+            <span class="exp-years num">{yr(j.data.start)} – {yr(j.data.end)}</span>
+            <div><h3>{j.data.title.split(' (')[0]}</h3><p class="exp-co">{j.data.company} · {j.data.location}</p></div>
+            <p class="exp-sum muted">{j.data.summary}</p>
+          </li>
+        ))}
+      </ol>
+      <a class="btn" href="/experience/">Full experience</a>
+    </div>
+  </section>
+
+  <!-- 7 · Insights -->
+  <section id="insights" class="section insights-teaser" data-scene="career" aria-labelledby="ins-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="ins-title">Insights & learning</h2>
+        <p>Notes on architecture, AI agents, data and engineering leadership, and a day-by-day learning log.</p>
+      </div>
+      <ul class="teasers">
+        {articles.map((a) => (
+          <li><a href={`/insights/${a.id}/`}><span class="muted">Article</span><b>{a.data.title}</b><span class="muted">{a.data.description}</span></a></li>
+        ))}
+        {lessons.slice(0, 2).map((l) => (
+          <li><a href={l.data.href}><span class="muted">Learning log · Day {l.data.day}</span><b>{l.data.title}</b><span class="muted">{l.data.description}</span></a></li>
+        ))}
+        <li><a href="/insights/"><span class="muted">Knowledge hub</span><b>All insights</b><span class="muted">Articles by topic, with an RSS feed.</span></a></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 8 · Contact -->
+  <section id="contact" class="contact" data-scene="converge" aria-labelledby="contact-title">
+    <div class="wrap contact-inner">
+      <h2 id="contact-title" class="display">Let’s build something that has to work.</h2>
+      <p class="muted">Open to technology leadership roles, consulting and collaboration on AI, data and platform engineering.</p>
+      <div class="contact-cta">
+        <a class="btn primary" href={`mailto:${SITE.email}`}>Email {SITE.email}</a>
+        <a class="btn" href={SITE.links.linkedin} rel="me noopener">LinkedIn</a>
+        <a class="btn" href={SITE.links.github} rel="me noopener">GitHub</a>
+        <a class="btn" href="/resume.pdf" download>Download resume (PDF)</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  #universe { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+  :global(.no-webgl) #universe { display: none; }
+  :global(body.home) { background: radial-gradient(80% 60% at 75% 20%, #0D1630 0%, var(--void) 60%) fixed; }
+  :global(body.home main) { position: relative; z-index: 1; }
+  /* sections paint above the fixed canvas (which lives inside <main>) */
+  :global(body.home main > section) { position: relative; z-index: 1; }
+  :global(body.home .footer) { position: relative; z-index: 2; }
+
+  .cluster-labels { position: fixed; inset: 0; z-index: 2; pointer-events: none; opacity: 0; }
+  .cluster-labels button {
+    position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); white-space: nowrap;
+    font: 600 12px/1 var(--text); color: var(--ink); background: rgba(6,8,15,.55); border: 1px solid var(--line);
+    border-radius: 999px; padding: 6px 10px; cursor: pointer; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    transition: border-color .2s, color .2s, background .2s;
+  }
+  .cluster-labels button.on { border-color: var(--amber); color: var(--amber); }
+  @media (max-width: 900px) { .cluster-labels { display: none; } }
+
+  /* hero */
+  .hero { min-height: 100svh; display: grid; align-items: end; padding-bottom: clamp(40px, 7vh, 80px); position: relative; }
+  .hero-inner { padding-top: 120px; }
+  .hero-role { color: var(--slate); font-size: var(--s-1); font-weight: 500; margin-bottom: 18px; }
+  .hero-name { font-size: clamp(4.2rem, 15.5vw, 15rem); text-transform: uppercase; display: flex; flex-direction: column; }
+  .hero-name span { display: block; }
+  .hero-name span + span { font-stretch: 125%; font-weight: 300; color: transparent; -webkit-text-stroke: 1.5px var(--ink); }
+  .hero-tags { display: flex; flex-wrap: wrap; gap: 8px 22px; list-style: none; padding: 0; margin-top: 26px; font-weight: 600; font-size: var(--s0); }
+  .hero-tags li + li::before { content: ''; display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--amber); margin-right: 22px; vertical-align: middle; transform: translateY(-2px); }
+  .hero-headline { margin-top: 18px; font-size: clamp(var(--s1), 2.2vw, var(--s2)); color: #C9D0DD; max-width: 30ch; line-height: 1.3; }
+  .hero-foot { margin-top: 40px; display: flex; flex-wrap: wrap; gap: 20px 40px; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 22px; }
+  .hero-years { color: var(--slate); }
+  .hero-years b { color: var(--ink); font-size: var(--s2); margin-right: 6px; font-weight: 700; }
+  .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+  .scroll-cue { position: absolute; left: 50%; bottom: 14px; width: 22px; height: 34px; border: 1px solid var(--line-strong); border-radius: 12px; transform: translateX(-50%); }
+  .scroll-cue span { position: absolute; left: 50%; top: 7px; width: 3px; height: 7px; border-radius: 2px; background: var(--ink); transform: translateX(-50%); animation: cue 1.8s var(--ease-out) infinite; }
+  @keyframes cue { 0% { opacity: 0; transform: translate(-50%, 0); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, 12px); } }
+  @media (max-width: 720px) { .scroll-cue { display: none; } .hero-name { font-size: clamp(3.4rem, 19vw, 6rem); } .hero-tags { flex-direction: column; gap: 4px; } .hero-tags li + li::before { display: none; } }
+
+  /* intro */
+  .intro-text { font-size: clamp(1.9rem, 4.2vw, 3.6rem); font-weight: 500; line-height: 1.12; max-width: 22ch; font-stretch: 100%; }
+  .intro-sub { margin-top: 28px; max-width: 58ch; font-size: var(--s1); line-height: 1.5; }
+  .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-top: clamp(48px, 7vw, 96px); max-width: 960px; }
+  .facts div { border-top: 1px solid var(--line-strong); padding-top: 16px; }
+  .facts dt { font: 700 clamp(2rem, 4vw, 3.2rem)/1 var(--display); letter-spacing: -.02em; }
+  .facts dd { margin: 10px 0 0; color: var(--slate); font-size: var(--s-1); max-width: 26ch; }
+  @media (max-width: 760px) { .facts { grid-template-columns: 1fr; } }
+
+  /* journey */
+  .journey { position: relative; }
+  .journey-pin { padding-block: clamp(96px, 14vw, 180px) 40px; }
+  .journey-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px 48px; align-items: end; }
+  .journey-head p { max-width: 42ch; }
+  .journey-progress { display: none; grid-column: 1 / -1; height: 2px; background: var(--line); margin-top: 18px; }
+  .journey-progress span { display: block; height: 100%; width: 100%; background: var(--amber); transform-origin: left; transform: scaleX(0); }
+  .journey-track { list-style: none; margin-top: 40px; display: flex; flex-direction: column; gap: 20px; padding-inline: var(--gutter); max-width: calc(720px + 2 * var(--gutter)); }
+  .stage { flex: none; border: 1px solid var(--line); border-radius: 18px; padding: 26px; background: rgba(11,18,34,.62); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  .stage-n { font: 700 var(--s3)/1 var(--display); color: var(--amber); }
+  .stage h3 { margin-top: 18px; font-size: var(--s2); }
+  .stage-meta { margin-top: 8px; font-size: var(--s-1); color: var(--slate); }
+  .stage-text { margin-top: 14px; color: #C9D0DD; }
+  /* enhanced: a pinned horizontal track (added by home.ts on desktop with motion allowed) */
+  :global(.journey-h) .journey-pin { min-height: 100svh; display: flex; flex-direction: column; justify-content: center; padding-block: 110px 60px; overflow: hidden; }
+  :global(.journey-h) .journey-progress { display: block; }
+  :global(.journey-h) .journey-track { flex-direction: row; width: max-content; max-width: none; gap: clamp(20px, 3vw, 40px); }
+  :global(.journey-h) .stage { width: min(78vw, 400px); }
+  @media (max-width: 860px) { .journey-head { grid-template-columns: 1fr; } }
+
+  /* skills */
+  .skills-grid { display: grid; grid-template-columns: minmax(0, 460px) minmax(0, 1fr); gap: 40px clamp(32px, 6vw, 96px); align-items: start; min-height: 70vh; }
+  .skills-intro { margin-top: 16px; max-width: 40ch; }
+  .domain-list { list-style: none; padding: 0; margin-top: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+  .domain { all: unset; box-sizing: border-box; width: 100%; cursor: pointer; padding: 11px 0; border-bottom: 1px solid var(--line); font: 600 var(--s0)/1.25 var(--display); color: var(--slate); transition: color .2s, padding-left .25s var(--ease-out); }
+  .domain:hover { color: var(--ink); }
+  .domain[aria-pressed='true'] { color: var(--ink); padding-left: 14px; box-shadow: inset 2px 0 0 var(--amber); }
+  .domain:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+  .domain-panel { margin-top: 28px; }
+  .domain-card { border: 1px solid var(--line); border-radius: 18px; padding: 28px; background: rgba(11,18,34,.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  .domain-card h3 { font-size: var(--s2); margin-bottom: 18px; }
+  .domain-card > p { margin-top: 18px; color: #C9D0DD; }
+  .domain-links { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: var(--s-1); }
+  @media (max-width: 900px) { .skills-grid { grid-template-columns: 1fr; } .skills-space { display: none; } }
+  @media (max-width: 480px) { .domain-list { grid-template-columns: 1fr; } }
+
+  /* projects */
+  .work { padding-top: clamp(96px, 14vw, 180px); }
+  .project { min-height: 100svh; display: grid; align-items: center; padding-block: 60px; }
+  .project-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 40px clamp(32px, 5vw, 80px); align-items: center; }
+  .project-domain { font-size: var(--s-1); color: var(--amber); font-weight: 600; }
+  .project-title { margin-top: 14px; font-size: clamp(2rem, 4vw, 3.4rem); font-weight: 700; font-stretch: 108%; letter-spacing: -.03em; line-height: 1; }
+  .project-summary { margin-top: 18px; font-size: var(--s1); line-height: 1.45; color: #C9D0DD; max-width: 40ch; }
+  .project-facts { display: flex; gap: 28px; margin: 26px 0 0; flex-wrap: wrap; }
+  .project-facts dt { font: 700 var(--s3)/1 var(--display); }
+  .project-facts dd { margin: 6px 0 0; color: var(--slate); font-size: var(--s-2); max-width: 22ch; }
+  .project .chips { margin: 24px 0 28px; }
+  .project-visual { min-width: 0; }
+  @media (max-width: 960px) { .project-grid { grid-template-columns: 1fr; } .project { min-height: auto; padding-block: 72px; } }
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .project .project-copy { clip-path: inset(0 0 100% 0); transform: translateY(40px); transition: clip-path 1s var(--ease-out), transform 1s var(--ease-out); }
+    :global(.js) .project.in .project-copy { clip-path: inset(0 0 -5% 0); transform: none; }
+  }
+
+  /* AI */
+  .ai-flow { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 32px; align-items: stretch; }
+  .ai-steps { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; align-content: center; position: relative; }
+  .ai-steps::before { content: ''; position: absolute; left: 6%; right: 6%; top: 50%; height: 1px; background: linear-gradient(90deg, var(--blue), var(--amber)); opacity: .5; }
+  .ai-step { all: unset; box-sizing: border-box; position: relative; width: 100%; aspect-ratio: 1; border-radius: 50%; display: grid; place-content: center; text-align: center; gap: 6px; cursor: pointer; border: 1px solid var(--line-strong); background: var(--void); font: 600 var(--s-1)/1.1 var(--text); color: var(--slate); transition: border-color .2s, color .2s, transform .16s var(--ease-out), box-shadow .3s; }
+  .ai-step .num { font-size: var(--s1); color: var(--ink); }
+  .ai-step:hover { color: var(--ink); }
+  .ai-step:active { transform: scale(.96); }
+  .ai-step[aria-pressed='true'] { border-color: var(--amber); color: var(--amber); box-shadow: 0 0 40px rgba(255,181,71,.25); }
+  .ai-step:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  .ai-detail { border: 1px solid var(--line); border-radius: 18px; padding: 28px; background: rgba(11,18,34,.7); display: flex; flex-direction: column; gap: 14px; justify-content: center; }
+  .ai-detail h3 { font-size: var(--s2); }
+  .ai-detail p { color: #C9D0DD; }
+  .ai-next { align-self: flex-start; margin-top: 8px; }
+  .ai-points { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; margin-top: 56px; }
+  .ai-points li { border-top: 1px solid var(--line-strong); padding-top: 14px; color: var(--slate); font-size: var(--s-1); }
+  .ai-points b { display: block; color: var(--ink); font-size: var(--s0); margin-bottom: 4px; }
+  .ai-more { margin-top: 32px; }
+  @media (max-width: 960px) { .ai-flow { grid-template-columns: 1fr; } .ai-points { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) { .ai-steps { gap: 6px; } .ai-step { font-size: 11px; } .ai-points { grid-template-columns: 1fr; } }
+
+  /* experience */
+  .exp-list { list-style: none; padding: 0; margin-bottom: 40px; }
+  .exp-list li { display: grid; grid-template-columns: 9rem minmax(0, 1.2fr) minmax(0, 1fr); gap: 8px 32px; padding: 22px 0; border-top: 1px solid var(--line); align-items: baseline; }
+  .exp-years { color: var(--amber); font-weight: 600; font-size: var(--s-1); }
+  .exp-co { color: var(--slate); font-size: var(--s-1); margin-top: 4px; }
+  @media (max-width: 860px) { .exp-list li { grid-template-columns: 1fr; } }
+
+  /* insights */
+  .teasers { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .teasers a { display: flex; flex-direction: column; gap: 10px; height: 100%; padding: 24px; border: 1px solid var(--line); border-radius: 16px; text-decoration: none; background: rgba(11,18,34,.55); transition: border-color .2s, transform .2s var(--ease-out); }
+  .teasers a:hover { border-color: var(--line-strong); transform: translateY(-2px); }
+  .teasers b { font: 650 var(--s1)/1.2 var(--display); }
+  .teasers span { font-size: var(--s-1); }
+
+  /* contact */
+  .contact { min-height: 100svh; display: grid; place-items: center; text-align: center; padding-block: 140px; }
+  .contact-inner { display: grid; justify-items: center; gap: 24px; }
+  .contact h2 { font-size: clamp(2.6rem, 7.5vw, 6.6rem); max-width: 14ch; }
+  .contact p { max-width: 52ch; }
+  .contact-cta { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 12px; }
+
+  /* text-over-scene legibility on small screens */
+  @media (max-width: 760px) { :global(body.home main) section { text-shadow: 0 1px 12px rgba(6,8,15,.9); } }
+
+  /* hero entrance runs in CSS so the name paints immediately (good LCP) and doesn't wait for JS */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-line] { animation: line-in 1.2s var(--ease-out) both; }
+    [data-line] + [data-line] { animation-delay: .12s; }
+    [data-reveal] { animation: rise-in .9s var(--ease-out) both; }
+    .hero-tags { animation-delay: .45s; }
+    .hero-headline { animation-delay: .55s; }
+    .hero-foot { animation-delay: .65s; }
+  }
+  @keyframes line-in { from { opacity: .01; transform: translateY(40%); clip-path: inset(0 0 100% 0); } to { opacity: 1; transform: none; clip-path: inset(0 0 -10% 0); } }
+  @keyframes rise-in { from { opacity: .01; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+</style>
+
+<script>
+  import { initHome } from '../scripts/home';
+  initHome();
+</script>

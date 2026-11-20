@@ -1,7 +1,7 @@
 ---
 title: Bihar Digital Health Applications
 short: Bihar digital health
-summary: Apps for a statewide public-health programme in Bihar that reached more than 200,000 frontline health workers, including Sanjivan, the state's COVID-19 app.
+summary: Apps for a statewide public-health programme in Bihar that reached 5,000 frontline health workers, including Sanjivan, the state's COVID-19 app.
 org: CARE India — Bihar Technical Support Program
 period: 2019 – 2021
 role: Manager, Systems
@@ -10,7 +10,7 @@ domain: Public-sector digital health
 status: delivered
 stack: [Android, Kotlin, Aadhaar authentication, Real-time reporting]
 facts:
-  - { value: "200,000+", label: "frontline health workers reached by the programme" }
+  - { value: "5,000", label: "frontline health workers reached by the programme" }
 keywords: [government digital health, public health technology, Android apps, COVID-19 app]
 diagram:
   caption: Field apps for health workers and a citizen app, built with the state's Health and ICDS departments.
@@ -35,7 +35,7 @@ diagram:
 
 ## Overview
 
-At CARE India I ran systems for the Bihar Technical Support Program, a statewide public-health programme that reached more than 200,000 frontline health workers. I worked closely with the Government of Bihar's Health and ICDS departments.
+At CARE India I ran systems for the Bihar Technical Support Program, a statewide public-health programme that reached 5,000 frontline health workers. I worked closely with the Government of Bihar's Health and ICDS departments.
 
 ## The problem
 

@@ -15,7 +15,7 @@ export const JOURNEY = [
   },
   {
     stage: 'Digital Health', period: '2019 – 2021', where: 'CARE India, Bihar',
-    text: 'Systems for a statewide programme reaching 200,000+ frontline health workers, and Sanjivan, Bihar’s COVID-19 app.',
+    text: 'Systems for a statewide programme reaching 5,000 frontline health workers, and Sanjivan, Bihar’s COVID-19 app.',
   },
   {
     stage: 'Fintech & Quantitative Technology', period: '2025 – now', where: 'FidelFolio Investments',

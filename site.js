@@ -184,3 +184,72 @@ void main(){
   };
   addEventListener('pointerup', end); addEventListener('pointercancel', end);
 })();
+
+/* Milestone reveal, adapted from charlie947/motion-graphics-skills:
+   points drift in and gather into each real figure, a rule draws, the label rises.
+   Seeded, computed from time alone, no bounce. Runs once when the figures scroll in. */
+(() => {
+  const facts = [...document.querySelectorAll('.fact')];
+  if (!facts.length || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const seeded = s => () => (s = (s * 16807) % 2147483647) / 2147483647;
+  const easeOut = x => 1 - Math.pow(1 - x, 4);
+  document.documentElement.classList.add('reveal-ready');
+
+  const build = (fact, i) => {
+    const b = fact.querySelector('b'), rect = b.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
+    const padY = 70, W = Math.ceil(rect.width + 40), H = Math.ceil(rect.height + padY * 2);
+    const cv = document.createElement('canvas'); cv.className = 'gather'; cv.setAttribute('aria-hidden', 'true');
+    cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px';
+    cv.style.top = (b.offsetTop - padY) + 'px'; cv.style.left = b.offsetLeft + 'px';
+    fact.appendChild(cv);
+    // sample the figure's filled pixels as targets
+    const off = document.createElement('canvas'); off.width = cv.width; off.height = cv.height;
+    const o = off.getContext('2d', { willReadFrequently: true }), cs = getComputedStyle(b);
+    o.font = `${cs.fontWeight} ${parseFloat(cs.fontSize) * dpr}px ${cs.fontFamily}`;
+    if ('fontStretch' in o) o.fontStretch = 'semi-expanded';
+    o.textBaseline = 'alphabetic'; o.fillStyle = '#000';
+    const base = (padY + rect.height * .86) * dpr;
+    o.fillText(b.textContent, 0, base);
+    const sx = (rect.width * dpr) / Math.max(1, o.measureText(b.textContent).width);
+    const data = o.getImageData(0, 0, off.width, off.height).data, step = Math.max(2, Math.round(2.2 * dpr)), pts = [];
+    for (let y = 0; y < off.height; y += step) for (let x = 0; x < off.width; x += step)
+      if (data[(y * off.width + x) * 4 + 3] > 128) pts.push([x * sx, y]);
+    const rnd = seeded(1301 + i * 97);
+    const P = pts.map(([tx, ty]) => ({ tx, ty, sx: rnd() * cv.width, sy: (rnd() < .5 ? rnd() * .3 : .7 + rnd() * .3) * cv.height,
+      d: rnd() * .45, a: .35 + rnd() * .65 }));
+    const ctx = cv.getContext('2d'), ink = getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#141A26';
+    const r = 1.9 * dpr;
+    const draw = t => { // t in seconds
+      ctx.clearRect(0, 0, cv.width, cv.height); ctx.fillStyle = ink;
+      for (const p of P) {
+        const k = easeOut(Math.min(1, Math.max(0, (t - p.d) / 1.7)));
+        const drift = (1 - k) * 6 * dpr * Math.sin(t * 1.3 + p.sx);
+        ctx.globalAlpha = p.a + (1 - p.a) * k;
+        ctx.fillRect(p.sx + (p.tx - p.sx) * k - r / 2, p.sy + (p.ty - p.sy) * k + drift - r / 2, r, r);
+      }
+    };
+    draw(0);
+    return { cv, draw, fact };
+  };
+
+  const run = ({ cv, draw, fact }, delay) => {
+    const t0 = performance.now() + delay;
+    const tick = now => {
+      const t = (now - t0) / 1000;
+      if (t < 0) return requestAnimationFrame(tick);
+      draw(t);
+      if (t < 2.25) requestAnimationFrame(tick);
+      else { fact.classList.add('settled'); cv.style.opacity = 0; setTimeout(() => cv.remove(), 600); }
+    };
+    requestAnimationFrame(tick);
+  };
+
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => {
+    const items = facts.map(build);
+    const io = new IntersectionObserver(es => es.forEach(e => {
+      if (!e.isIntersecting) return; io.disconnect();
+      items.forEach((it, i) => run(it, i * 220));
+    }), { threshold: .6 });
+    io.observe(facts[0].parentElement);
+  });
+})();

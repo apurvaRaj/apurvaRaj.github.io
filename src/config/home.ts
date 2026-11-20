@@ -7,7 +7,7 @@ export const JOURNEY = [
   },
   {
     stage: 'Backend & Distributed Systems', period: '2018 – 2019', where: 'Silvermine Group',
-    text: 'An analytics pipeline for mobile-app events on Scala, Kafka and MongoDB, a push-notification service on AWS, and a configuration service.',
+    text: 'An emoji app that people use inside chat apps such as WhatsApp and Facebook: an event analytics pipeline on Scala, Kafka and MongoDB, push notifications on AWS, and an avatar-generation engine.',
   },
   {
     stage: 'Blockchain & Web3', period: '2019 – 2025', where: 'IIIT Bangalore · ChainThat · IIT Patna',
@@ -46,8 +46,8 @@ export const DOMAINS = [
   },
   {
     id: 'ml', name: 'AI & Machine Learning',
-    tools: ['Machine learning', 'LLMs', 'OpenAI API', 'pandas', 'NumPy'],
-    used: 'An AI assistant that turns plain-language requests into stock screens, and quantitative research tooling.',
+    tools: ['LLMs', 'OpenAI API', 'Prompt design', 'ML project oversight'],
+    used: 'An AI assistant that turns plain-language requests into stock screens, and oversight of the team’s machine-learning projects at FidelFolio.',
     projects: ['fidelfolio-research-platform'],
   },
   {

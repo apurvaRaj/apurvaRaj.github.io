@@ -20,7 +20,7 @@ const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 
     <section aria-labelledby="latest">
       <h2 id="latest">Latest articles</h2>
       {articles.length === 0 ? (
-        <p class="empty muted">The first articles are being written. Follow the <a href="/rss.xml">RSS feed</a> to get them as they’re published, or start with the learning log below.</p>
+        <p class="empty muted">No articles yet. Start with the learning log below, or follow the <a href="/rss.xml">RSS feed</a>.</p>
       ) : (
         <ol class="posts">
           {articles.map((a) => (

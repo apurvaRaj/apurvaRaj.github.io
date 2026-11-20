@@ -11,16 +11,17 @@ The site uses only facts from the resume (Oct 2026), the previous site, and what
 | Project metrics | Case studies | Real numbers you're comfortable publishing: users, reports per month, time saved, data volume, uptime |
 | Articles | Insights | None published yet. The hub, categories, RSS and article pages are ready; `article-template.md` shows the format |
 | Bihar apps' backend stack | Bihar case study | Only Android/Kotlin is on the resume; add backend and data stack if you want it shown |
-| AMXpedia stack and status | AMXpedia case study | Framework, database, payment provider, and the live date. The brief called it a "3D printing and design marketplace"; your earlier notes called it an industrial-procurement platform. The page says "3D printing, design and industrial parts". Please confirm the positioning |
+| AMXpedia stack and status | AMXpedia case study | Framework, database, payment provider and live date (positioning confirmed: a marketplace for 3D-printed items and components) |
 | Blockchain health-records design | That case study | The page describes record files on IPFS with references and an access trail on Ethereum. Confirm this matches what you built, and add the GitHub link if the code is public |
 | Open-source links | Case studies | Only `agent-exec-gateway` is linked. Add any other public repos |
 | Speaking, writing, recognition | About | Talks, publications or awards beyond those on the resume |
 
 ## Drafted from your work: please confirm the wording
 
-- **About → Engineering principles** ("One source of truth", "Validate before you replace", "AI with a person in the loop", "Write decisions down"). These are drawn from decisions described in the case studies, but phrased as principles by Claude. Rewrite them in your own words.
+- **About → Engineering principles**: rewritten in your voice (20 Nov). Adjust any line that doesn't sound like you.
 - **About → Leadership**. Based on the resume's CTO bullets.
 - **Case studies → "The problem" sections** for AMXpedia and blockchain health records are general descriptions of the problem space, not your own statements.
+- **Skills → AI & Machine Learning** now says you oversaw the team's ML projects rather than listing ML as a hands-on skill. Name a project there if you want to.
 
 ## Worth a decision
 

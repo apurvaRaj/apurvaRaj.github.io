@@ -1,7 +1,7 @@
 ---
-title: AMXpedia — 3D Printing and Design Marketplace
+title: AMXpedia — Marketplace for 3D-Printed Parts
 short: AMXpedia
-summary: An India-focused, engineering-first marketplace for 3D printing, design and industrial parts, built end to end with AI coding agents.
+summary: An India-focused marketplace for 3D-printed items and components, built with AI coding agents.
 org: AMXpedia (own venture)
 period: 2026 – present
 role: Founder and builder
@@ -11,7 +11,7 @@ status: in-development
 stack: [Claude Code, DigitalOcean]
 links:
   - { label: "amxpedia.com", href: "https://amxpedia.com" }
-keywords: [3D printing marketplace, industrial procurement platform, e-commerce architecture]
+keywords: [3D printing marketplace, 3D-printed parts, e-commerce architecture]
 diagram:
   caption: The buying journey the platform is being built around.
   nodes:
@@ -29,11 +29,11 @@ diagram:
 
 ## Overview
 
-AMXpedia is an India-focused, engineering-first marketplace for 3D printing, design and industrial parts. It is in development.
+AMXpedia is an India-focused marketplace for 3D-printed items and components. It is in development.
 
 ## The problem
 
-Engineers and makers in India buying parts and manufacturing services deal with scattered suppliers and thin product information. AMXpedia aims to give them one well-organised catalogue with the detail an engineer needs to choose.
+Buying 3D-printed parts in India usually means finding a supplier, sending files back and forth and comparing quotes by hand. AMXpedia puts 3D-printed items and components in one catalogue that people can browse and buy from directly.
 
 ## Architecture and solution
 

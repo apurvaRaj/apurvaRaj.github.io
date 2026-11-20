@@ -1,5 +1,5 @@
 ---
-title: Bihar Digital Health & Nutrition Applications
+title: Bihar Digital Health Applications
 short: Bihar digital health
 summary: Apps for a statewide public-health programme in Bihar that reached more than 200,000 frontline health workers, including Sanjivan, the state's COVID-19 app.
 org: CARE India — Bihar Technical Support Program

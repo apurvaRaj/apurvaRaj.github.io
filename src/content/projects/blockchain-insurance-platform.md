@@ -11,7 +11,6 @@ status: delivered
 stack: [R3 Corda, Java, Microservices, REST APIs, React, Access control]
 facts:
   - { value: "130+", label: "countries covered by the shared programme record" }
-  - { value: "1", label: "shared programme record, so renewals need no manual re-entry" }
 keywords: [enterprise blockchain developer, R3 Corda, insurance technology, blockchain architect]
 diagram:
   caption: Insurers in each country work from one shared, permissioned record instead of copies.

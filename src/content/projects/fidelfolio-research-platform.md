@@ -11,7 +11,7 @@ status: live
 stack: [Python, pandas, SQLAlchemy, MySQL, React, OpenAI API, Docker, n8n, Claude Code]
 facts:
   - { value: "30+ yrs", label: "of Indian share prices and fundamentals in the data platform" }
-  - { value: "2", label: "public products: fidelfolio.com and the fidelfolio.ai screener" }
+  - { value: "2", label: "public sites: fidelfolio.com and fidelfolio.ai" }
 links:
   - { label: "fidelfolio.com", href: "https://fidelfolio.com" }
   - { label: "fidelfolio.ai", href: "https://fidelfolio.ai" }

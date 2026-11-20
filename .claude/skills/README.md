@@ -9,6 +9,7 @@ Installed 2026-11-20 as project skills; Claude Code loads them when working in t
 | emil-design-eng | github.com/emilkowalski/skills | 64eb3de | MIT |
 | apple-design | github.com/emilkowalski/skills | 64eb3de | MIT |
 | web-design-guidelines | github.com/vercel-labs/agent-skills | 1a2c79d | MIT |
+| immersive-webgl-site | written for this repo (tested starter in template/) | — | — |
 | react-best-practices | github.com/vercel-labs/agent-skills | 1a2c79d | MIT |
 
 Local changes after a security review (2026-11-20):
